@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Auth plugin "LDAP SyncPlus" - Local library
+ * Auth plugin "LDAP SyncPlus" - Event definition
  *
  * @package     auth
  * @subpackage  auth_ldap_syncplus
@@ -25,4 +25,10 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-define('AUTH_REMOVEUSER_DELETEWITHGRACEPERIOD', 3);
+$observers = array(
+    array(
+        'eventname'   => '\core\event\user_created',
+        'includefile' => '/auth/ldap_syncplus/eventhandler.php',
+        'callback'    => 'update_user_onevent',
+    ),
+);

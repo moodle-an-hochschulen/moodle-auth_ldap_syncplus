@@ -18,7 +18,7 @@
  * Auth plugin "LDAP SyncPlus" - Version file
  *
  * @package     auth
- * @subpackage  auth_syncplus
+ * @subpackage  auth_ldap_syncplus
  * @copyright   2014 Alexander Bias, University of Ulm <alexander.bias@uni-ulm.de>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -26,8 +26,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'auth_ldap_syncplus';
-$plugin->version = 2013111800;
-$plugin->release = '2.6 (Build: 2014021800)';
-$plugin->requires = 2013111800;
+$plugin->version = 2014051202;
+$plugin->release = '2.7 (Build: 2014073100)';
+$plugin->requires = 2014051200;
 $plugin->maturity = MATURITY_STABLE;
-$plugin->dependencies = array('auth_ldap' => 2013110500);
+$plugin->dependencies = array('auth_ldap' => 2014051200);

@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Auth plugin "LDAP SyncPlus" - Local library
+ * Auth plugin "LDAP SyncPlus" - Event handler
  *
  * @package     auth
  * @subpackage  auth_ldap_syncplus
@@ -23,6 +23,15 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+defined('MOODLE_INTERNAL') || die;
 
-define('AUTH_REMOVEUSER_DELETEWITHGRACEPERIOD', 3);
+function update_user_onevent($eventdata) {
+    // Do only if username is enclosed in $eventdata - this event handler might be called twice when creating an user, so we have to handle this fact
+    if (isset($eventdata->username) && is_string($eventdata->username)) {
+        // Get LDAP Plugin
+        $authplugin = get_auth_plugin('ldap_syncplus');
+
+        // Update user
+        $authplugin->update_user_record($eventdata->username);
+    }
+}

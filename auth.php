@@ -18,7 +18,7 @@
  * Auth plugin "LDAP SyncPlus"
  *
  * @package     auth
- * @subpackage  auth_syncplus
+ * @subpackage  auth_ldap_syncplus
  * @copyright   2014 Alexander Bias, University of Ulm <alexander.bias@uni-ulm.de>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -27,6 +27,7 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->libdir.'/authlib.php');
 require_once($CFG->libdir.'/ldaplib.php');
+require_once($CFG->dirroot.'/user/lib.php');
 require_once(dirname(dirname(__FILE__)).'/ldap/auth.php');
 require_once(dirname(__FILE__).'/locallib.php');
 

@@ -5,11 +5,14 @@ Moodle authentication method which provides all functionality of auth_ldap, but 
 
 Requirements
 ============
-This plugin requires Moodle 2.6+
+This plugin requires Moodle 2.7+
 
 
 Changes
 =======
+2014-08-25 - Support new event API, remove legacy event handling
+2014-07-31 - Add event handler for "user_created" event (see "Fetching user details from LDAP on manual user creation" below for details)
+2014-06-30 - Check compatibility for Moodle 2.7, no functionality change
 2014-03-12 - Initial version
 
 
@@ -18,7 +21,7 @@ Installation
 Install the plugin like any other plugin to folder
 /auth/ldap_syncplus
 
-See http://docs.moodle.org/26/en/Installing_plugins for details on installing Moodle plugins
+See http://docs.moodle.org/en/Installing_plugins for details on installing Moodle plugins
 
 
 Usage & Settings
@@ -47,7 +50,15 @@ Running LDAP synchronization script
 ===================================
 To leverage the additional synchronization features of auth_ldap_syncplus, you have to change your synchronization cronjob from /auth/ldap/cli/sync_users.php to /auth/ldap_syncplus/cli/sync_users.php.
 
-If you don't know how to setup your synchronization cronjob, see http://docs.moodle.org/26/en/LDAP_authentication#Setting_up_regular_automatic_synchronisation_using_cron and the comments in /auth/ldap/cli/sync_users.php for details.
+If you don't know how to setup your synchronization cronjob, see http://docs.moodle.org/en/LDAP_authentication#Setting_up_regular_automatic_synchronisation_using_cron and the comments in /auth/ldap/cli/sync_users.php for details.
+
+
+Fetching user details from LDAP on manual user creation
+=======================================================
+Normally, when a new user logs into Moodle for the first time and a Moodle account is automatically created, Moodle pulls the user's details from LDAP and stores them in the Moodle user profile according to the LDAP plugin's settings.
+
+auth_ldap_syncplus extends this behaviour of pulling user details from LDAP:
+With auth_ldap_syncplus, you can create an user manually on Site Administration -> Users -> Accounts -> Add a new user. The only thing you have to specify correctly is the username (which corresponds to the username in LDAP). All other details like first name or email address can be filled with placeholder content. After you click the "Create user" button, Moodle pulls the other user's details from LDAP and creates the user account correctly with the details from LDAP.
 
 
 Themes
