@@ -10,6 +10,7 @@ This plugin requires Moodle 2.7+
 
 Changes
 =======
+2014-08-27 - Change line breaks to mtrace() (MDL-30589)
 2014-08-25 - Support new event API, remove legacy event handling
 2014-07-31 - Add event handler for "user_created" event (see "Fetching user details from LDAP on manual user creation" below for details)
 2014-06-30 - Check compatibility for Moodle 2.7, no functionality change

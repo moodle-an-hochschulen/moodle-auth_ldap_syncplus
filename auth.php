@@ -57,7 +57,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
     function sync_users($do_updates=true) {
         global $CFG, $DB;
 
-        print_string('connectingldap', 'auth_ldap'); echo "\n";
+        mtrace(get_string('connectingldap', 'auth_ldap'));
         $ldapconnection = $this->ldap_connect();
 
         $dbman = $DB->get_manager();
@@ -70,7 +70,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
         $table->add_index('username', XMLDB_INDEX_UNIQUE, array('mnethostid', 'username'));
 
-        print_string('creatingtemptable', 'auth_ldap', 'tmp_extuser'); echo "\n";
+        mtrace(get_string('creatingtemptable', 'auth_ldap', 'tmp_extuser'));
         $dbman->create_temp_table($table);
 
         ////
@@ -133,10 +133,10 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         /// so as to avoid mass deletion of users; which is hard to undo
         $count = $DB->count_records_sql('SELECT COUNT(username) AS count, 1 FROM {tmp_extuser}');
         if ($count < 1) {
-            print_string('didntgetusersfromldap', 'auth_ldap'); echo "\n";
+            mtrace(get_string('didntgetusersfromldap', 'auth_ldap'));
             exit;
         } else {
-            print_string('gotcountrecordsfromldap', 'auth_ldap', $count); echo "\n";
+            mtrace(get_string('gotcountrecordsfromldap', 'auth_ldap', $count));
         }
 
 
@@ -157,16 +157,17 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 $remove_users = $DB->get_records_sql($sql, array('auth'=>$this->authtype));
 
                 if (!empty($remove_users)) {
-                    print_string('userentriestoremove', 'auth_ldap', count($remove_users)); echo "\n";
+                    mtrace(get_string('userentriestoremove', 'auth_ldap', count($remove_users)));
+
                     foreach ($remove_users as $user) {
                         if (delete_user($user)) {
-                            echo "\t"; print_string('auth_dbdeleteuser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)); echo "\n";
+                            mtrace("\t".get_string('auth_dbdeleteuser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                         } else {
-                            echo "\t"; print_string('auth_dbdeleteusererror', 'auth_db', $user->username); echo "\n";
+                            mtrace("\t".get_string('auth_dbdeleteusererror', 'auth_db', $user->username));
                         }
                     }
                 } else {
-                    print_string('nouserentriestoremove', 'auth_ldap'); echo "\n";
+                    mtrace(get_string('nouserentriestoremove', 'auth_ldap'));
                 }
                 unset($remove_users); // Free mem!
 
@@ -181,18 +182,18 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 $remove_users = $DB->get_records_sql($sql, array('auth'=>$this->authtype));
 
                 if (!empty($remove_users)) {
-                    print_string('userentriestoremove', 'auth_ldap', count($remove_users)); echo "\n";
+                    mtrace(get_string('userentriestoremove', 'auth_ldap', count($remove_users)));
 
                     foreach ($remove_users as $user) {
                         $updateuser = new stdClass();
                         $updateuser->id = $user->id;
                         $updateuser->suspended = 1;
                         user_update_user($updateuser, false);
-                        echo "\t"; print_string('auth_dbsuspenduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)); echo "\n";
+                        mtrace("\t".get_string('auth_dbsuspenduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                         \core\session\manager::kill_user_sessions($user->id);
                     }
                 } else {
-                    print_string('nouserentriestoremove', 'auth_ldap'); echo "\n";
+                    mtrace(get_string('nouserentriestoremove', 'auth_ldap'));
                 }
                 unset($remove_users); // Free mem!
             }
@@ -207,7 +208,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 $revive_users = $DB->get_records_sql($sql, array($this->authtype));
 
                 if (!empty($revive_users)) {
-                    print_string('userentriestorevive', 'auth_ldap', count($revive_users)); echo "\n";
+                    mtrace(get_string('userentriestorevive', 'auth_ldap', count($revive_users)));
 
                     foreach ($revive_users as $user) {
                         $updateuser = new stdClass();
@@ -215,10 +216,10 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                         $updateuser->auth = $this->authtype;
                         $updateuser->suspended = 0;
                         user_update_user($updateuser, false);
-                        echo "\t"; print_string('auth_dbreviveduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)); echo "\n";
+                        mtrace("\t".get_string('auth_dbreviveduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                     }
                 } else {
-                    print_string('nouserentriestorevive', 'auth_ldap'); echo "\n";
+                    mtrace(get_string('nouserentriestorevive', 'auth_ldap'));
                 }
 
                 unset($revive_users);
@@ -237,7 +238,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             $revive_users = $DB->get_records_sql($sql, array($this->authtype));
 
             if (!empty($revive_users)) {
-                print_string('userentriestorevive', 'auth_ldap', count($revive_users)); echo "\n";
+                mtrace(get_string('userentriestorevive', 'auth_ldap', count($revive_users)));
 
                 foreach ($revive_users as $user) {
                     $updateuser = new stdClass();
@@ -245,10 +246,10 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     $updateuser->auth = $this->authtype;
                     $updateuser->suspended = 0;
                     user_update_user($updateuser, false);
-                    echo "\t"; print_string('auth_dbreviveduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)); echo "\n";
+                    mtrace("\t".get_string('auth_dbreviveduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                 }
             } else {
-                print_string('nouserentriestorevive', 'auth_ldap'); echo "\n";
+                mtrace(get_string('nouserentriestorevive', 'auth_ldap'));
             }
             unset($revive_users);
 
@@ -263,7 +264,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             $remove_users = $DB->get_records_sql($sql, array('auth'=>$this->authtype));
 
             if (!empty($remove_users)) {
-                print_string('userentriestosuspend', 'auth_ldap_syncplus', count($remove_users)); echo "\n";
+                mtrace(get_string('userentriestosuspend', 'auth_ldap_syncplus', count($remove_users)));
 
                 foreach ($remove_users as $user) {
                     $updateuser = new stdClass();
@@ -271,11 +272,11 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     $updateuser->suspended = 1;
                     $updateuser->timemodified = time(); // Remember suspend time, abuse timemodified column for this
                     user_update_user($updateuser, false);
-                    echo "\t"; print_string('auth_dbsuspenduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)); echo "\n";
+                    mtrace("\t".get_string('auth_dbsuspenduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                     \core\session\manager::kill_user_sessions($user->id);
                 }
             } else {
-                print_string('nouserentriestosuspend', 'auth_ldap_syncplus'); echo "\n";
+                mtrace(get_string('nouserentriestosuspend', 'auth_ldap_syncplus'));
             }
             unset($remove_users); // Free mem!
 
@@ -289,25 +290,25 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             $remove_users = $DB->get_records_sql($sql, array('auth'=>$this->authtype));
 
             if (!empty($remove_users)) {
-                print_string('userentriestoremove', 'auth_ldap', count($remove_users)); echo "\n";
+                mtrace(get_string('userentriestoremove', 'auth_ldap', count($remove_users)));
 
                 foreach ($remove_users as $user) {
                     // Do only if user was suspended before grace period
                     $graceperiod = max(intval($this->config->removeuser_graceperiod),0); // Fix problems if grace period setting was negative or no number
                     if (time() - $user->timemodified >= $graceperiod * 24 * 3600) {
                         if (delete_user($user)) {
-                            echo "\t"; print_string('auth_dbdeleteuser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)); echo "\n";
+                            mtrace("\t".get_string('auth_dbdeleteuser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                         } else {
-                            echo "\t"; print_string('auth_dbdeleteusererror', 'auth_db', $user->username); echo "\n";
+                            mtrace("\t".get_string('auth_dbdeleteusererror', 'auth_db', $user->username));
                         }
                     }
                     // Otherwise inform about ongoing grace period
                     else {
-                        echo "\t"; print_string('waitinginremovalqueue', 'auth_ldap_syncplus', array('days'=>$graceperiod, 'name'=>$user->username, 'id'=>$user->id)); echo "\n";
+                        mtrace("\t".get_string('waitinginremovalqueue', 'auth_ldap_syncplus', array('days'=>$graceperiod, 'name'=>$user->username, 'id'=>$user->id)));
                     }
                 }
             } else {
-                print_string('nouserentriestoremove', 'auth_ldap'); echo "\n";
+                mtrace(get_string('nouserentriestoremove', 'auth_ldap'));
             }
             unset($remove_users); // Free mem!
         }
@@ -329,9 +330,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 }
             }
             unset($all_keys); unset($key);
-
         } else {
-            print_string('noupdatestobedone', 'auth_ldap'); echo "\n";
+            mtrace(get_string('noupdatestobedone', 'auth_ldap'));
         }
         if ($do_updates and !empty($updatekeys)) { // run updates only if relevant
             $users = $DB->get_records_sql('SELECT u.username, u.id
@@ -339,7 +339,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                                             WHERE u.deleted = 0 AND u.auth = ? AND u.mnethostid = ?',
                                           array($this->authtype, $CFG->mnet_localhost_id));
             if (!empty($users)) {
-                print_string('userentriestoupdate', 'auth_ldap', count($users)); echo "\n";
+                mtrace(get_string('userentriestoupdate', 'auth_ldap', count($users)));
 
                 $sitecontext = context_system::instance();
                 if (!empty($this->config->creators) and !empty($this->config->memberattribute)
@@ -354,11 +354,13 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 $maxxcount = 100;
 
                 foreach ($users as $user) {
-                    echo "\t"; print_string('auth_dbupdatinguser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id));
                     if (!$this->update_user_record($user->username, $updatekeys)) { // user_updated event is fired hereby
-                        echo ' - '.get_string('skipped');
+                        $skipped = ' - '.get_string('skipped');
                     }
-                    echo "\n";
+                    else {
+                        $skipped = '';
+                    }
+                    mtrace("\t".get_string('auth_dbupdatinguser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)).$skipped);
                     $xcount++;
 
                     // Update course creators if needed
@@ -374,7 +376,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 unset($users); // free mem
             }
         } else { // end do updates
-            print_string('noupdatestobedone', 'auth_ldap'); echo "\n";
+            mtrace(get_string('noupdatestobedone', 'auth_ldap'));
         }
 
         /// User Additions
@@ -389,7 +391,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             $add_users = $DB->get_records_sql($sql);
 
             if (!empty($add_users)) {
-                print_string('userentriestoadd', 'auth_ldap', count($add_users)); echo "\n";
+                mtrace(get_string('userentriestoadd', 'auth_ldap', count($add_users)));
 
                 $sitecontext = context_system::instance();
                 if (!empty($this->config->creators) and !empty($this->config->memberattribute)
@@ -419,7 +421,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     }
 
                     $id = user_create_user($user, false);
-                    echo "\t"; print_string('auth_dbinsertuser', 'auth_db', array('name'=>$user->username, 'id'=>$id)); echo "\n";
+                    mtrace("\t".get_string('auth_dbinsertuser', 'auth_db', array('name'=>$user->username, 'id'=>$id)));
                     $euser = $DB->get_record('user', array('id' => $id));
 
                     if (!empty($this->config->forcechangepassword)) {
@@ -435,10 +437,10 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 $transaction->allow_commit();
                 unset($add_users); // free mem
             } else {
-                print_string('nouserstobeadded', 'auth_ldap'); echo "\n";
+                mtrace(get_string('nouserstobeadded', 'auth_ldap'));
             }
         } else {
-            print_string('nouserstobeadded', 'auth_ldap'); echo "\n";
+            mtrace(get_string('nouserstobeadded', 'auth_ldap'));
         }
 
         $dbman->drop_table($table);
