@@ -1,6 +1,10 @@
 moodle-auth_ldap_syncplus
 =========================
-Moodle authentication method which provides all functionality of auth_ldap, but supports advanced features for the LDAP synchronization script: On the one hand, it adds the possibility to the LDAP synchronization script to suspend users which have disappeared in LDAP for a configurable amount of days and delete them only after this grace period (the Moodle core LDAP synchronization script only provides you the option to suspend _or_ delete users which have disappeared in LDAP). On the other hand, you can prevent the LDAP synchronization script from creating Moodle accounts for all LDAP users if they have never logged into Moodle before (the Moodle core LDAP synchronization script always creates Moodle accounts for all LDAP users).
+Moodle authentication method which provides all functionality of auth_ldap, but supports advanced features for the LDAP synchronization script:
+- It adds the possibility to the LDAP synchronization script to suspend users which have disappeared in LDAP for a configurable amount of days and delete them only after this grace period (the Moodle core LDAP synchronization script only provides you the option to suspend _or_ delete users which have disappeared in LDAP - MDL-47018).
+- You can prevent the LDAP synchronization script from creating Moodle accounts for all LDAP users if they have never logged into Moodle before (the Moodle core LDAP synchronization script always creates Moodle accounts for all LDAP users - MDL-29249).
+- You can fetch user details from LDAP on manual user creation (MDL-47029).
+- It adds several line breaks to the output of the LDAP synchronization script to improve readability (MDL-30589).
 
 
 Requirements
@@ -10,9 +14,10 @@ This plugin requires Moodle 2.7+
 
 Changes
 =======
+2014-08-29 - Update README file
 2014-08-27 - Change line breaks to mtrace() (MDL-30589)
 2014-08-25 - Support new event API, remove legacy event handling
-2014-07-31 - Add event handler for "user_created" event (see "Fetching user details from LDAP on manual user creation" below for details)
+2014-07-31 - Add event handler for "user_created" event (see "Fetching user details from LDAP on manual user creation" below for details - MDL-47029)
 2014-06-30 - Check compatibility for Moodle 2.7, no functionality change
 2014-03-12 - Initial version
 
@@ -49,7 +54,7 @@ UPDATE mdl_user SET auth='ldap_syncplus' WHERE auth='ldap'
 
 Running LDAP synchronization script
 ===================================
-To leverage the additional synchronization features of auth_ldap_syncplus, you have to change your synchronization cronjob from /auth/ldap/cli/sync_users.php to /auth/ldap_syncplus/cli/sync_users.php.
+To leverage the additional LDAP synchronization features of auth_ldap_syncplus, you have to change your synchronization cronjob from /auth/ldap/cli/sync_users.php to /auth/ldap_syncplus/cli/sync_users.php.
 
 If you don't know how to setup your synchronization cronjob, see http://docs.moodle.org/en/LDAP_authentication#Setting_up_regular_automatic_synchronisation_using_cron and the comments in /auth/ldap/cli/sync_users.php for details.
 
@@ -60,6 +65,8 @@ Normally, when a new user logs into Moodle for the first time and a Moodle accou
 
 auth_ldap_syncplus extends this behaviour of pulling user details from LDAP:
 With auth_ldap_syncplus, you can create an user manually on Site Administration -> Users -> Accounts -> Add a new user. The only thing you have to specify correctly is the username (which corresponds to the username in LDAP). All other details like first name or email address can be filled with placeholder content. After you click the "Create user" button, Moodle pulls the other user's details from LDAP and creates the user account correctly with the details from LDAP.
+
+This feature is enabled automatically and can be used as soon as you are using auth_ldap_syncplus as your LDAP authentication plugin like described above.
 
 
 Themes
@@ -76,7 +83,7 @@ Moodle release support
 ======================
 Due to limited ressources, auth_ldap_syncplus is only maintained for the most recent major release of Moodle. However, previous versions of this plugin which work in legacy major releases of Moodle are still available as-is without any further updates in the Moodle Plugins repository.
 
-There may be several weeks after a new major release of Moodle has been published until I can do a compatibility check and fix problems if necessary. If you encounter problems with a new major release of Moodle - or can confirm that auth_ldap_syncplus still works with a new major relase - please let me know on https://github.com/moodleuulm/moodle-auth_ldap_syncplus/issues
+There may be several weeks after a new major release of Moodle has been published until we can do a compatibility check and fix problems if necessary. If you encounter problems with a new major release of Moodle - or can confirm that auth_ldap_syncplus still works with a new major relase - please let us know on https://github.com/moodleuulm/moodle-auth_ldap_syncplus/issues
 
 
 Right-to-left support
@@ -86,6 +93,16 @@ If you want to use this plugin with a RTL language and it doesn't work as-is, yo
 github with modifications.
 
 
+Contribution to Moodle Core
+===========================
+There is a Moodle tracker ticket on https://tracker.moodle.org/browse/MDL-47030 which proposes to add the improved features of this plugin to Moodle core auth_ldap plugin.
+
+Please vote for this ticket if you want to have this realized.
+
+
 Copyright
 =========
-Alexander Bias, University of Ulm
+University of Ulm
+kiz - Media Department
+Team Web & Teaching Support
+Alexander Bias
