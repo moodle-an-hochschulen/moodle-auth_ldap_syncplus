@@ -629,4 +629,128 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
         return true;
     }
+
+
+    /**
+     * Support login via email ($CFG->authloginviaemail) for first-time LDAP logins
+     */
+    function loginpage_hook(){
+        global $CFG, $frm, $DB;
+
+        // If $CFG->authloginviaemail is not set, users don't want to login by mail, call parent hook and return
+        if ($CFG->authloginviaemail != 1) {
+            parent::loginpage_hook(); // Call parent function to retain its functionality
+            return;
+        }
+
+        // Get submitted form data
+        $frm = data_submitted();
+
+        // If there is no username submitted, there's nothing to do, call parent hook and return
+        if (empty($frm->username)) {
+            parent::loginpage_hook(); // Call parent function to retain its functionality
+            return;
+        }
+
+        // Clean username parameter to make sure that its an email adress
+        $email = clean_param($frm->username, PARAM_EMAIL);
+
+        // If we don't have an email adress, there's nothing to do, call parent hook and return
+        if ($email == '' || strpos($email, '@') == false) {
+            parent::loginpage_hook(); // Call parent function to retain its functionality
+            return;
+        }
+
+        // If there is an existing useraccount with this email adress as email adress (then a Moodle account already exists and the standard mechanism of $CFG->authloginviaemail will kick in automatically)
+        // or if there is an existing useraccount with this email adress as username (which is not forbidden, so this useraccount has to be used), call parent hook and return
+        if ($DB->count_records_select('user', '(username = :p1 OR email = :p2) AND deleted = 0',
+                                        array('p1' => $email, 'p2' => $email)) > 0) {
+            parent::loginpage_hook(); // Call parent function to retain its functionality
+            return;
+        }
+
+        // Get auth plugin
+        $authplugin = get_auth_plugin('ldap_syncplus');
+
+        // If there is no email field mapping configured, we don't know where we can find the email adress in LDAP, call parent hook and return
+        if (empty($authplugin->config->field_map_email)) {
+            parent::loginpage_hook(); // Call parent function to retain its functionality
+            return;
+        }
+
+        // Prepare LDAP search
+        $contexts = explode(';', $authplugin->config->contexts);
+        $filter = '(&('.$authplugin->config->field_map_email.'='.ldap_filter_addslashes($email).')'.$authplugin->config->objectclass.')';
+
+        // Connect to LDAP
+        $ldapconnection = $authplugin->ldap_connect();
+
+        // Array for saving the user's ids which are found in the configured LDAP contexts
+        $uidsfound = array();
+
+        // Look for users matching the given email adress in LDAP
+        foreach ($contexts as $context) {
+            // Verify that the given context is valid
+            $context = trim($context);
+            if (empty($context)) {
+                continue;
+            }
+
+            // Search LDAP
+            if ($authplugin->config->search_sub) {
+                // Use ldap_search to find first user from subtree
+                $ldap_result = ldap_search($ldapconnection, $context, $filter, array($authplugin->config->user_attribute));
+            }
+            else {
+                // Search only in this context
+                $ldap_result = ldap_list($ldapconnection, $context, $filter, array($authplugin->config->user_attribute));
+            }
+
+            // If there is no LDAP result, continue with next context
+            if (!$ldap_result) {
+                continue;
+            }
+
+            // Get users in LDAP result
+            $users = ldap_get_entries_moodle($ldapconnection, $ldap_result);
+
+            // If there is not exactly one matching user, we can't continue, call parent hook and return
+            if (ldap_count_entries($ldapconnection, $ldap_result) != 1) {
+                parent::loginpage_hook(); // Call parent function to retain its functionality
+                return;
+            }
+
+            // Get this one matching user entry
+            if (!$ldap_entry = ldap_first_entry($ldapconnection, $ldap_result)) {
+                parent::loginpage_hook(); // Call parent function to retain its functionality
+                return;
+            }
+
+            // Get the uid attribute's value(s) from this user entry
+            $values = ldap_get_values($ldapconnection, $ldap_entry, $authplugin->config->user_attribute);
+
+            // If there is not exactly one copy of the uid attribute in the LDAP user entry, we don't know which one to use, call parent hook and return
+            if ($values['count'] != 1) {
+                parent::loginpage_hook(); // Call parent function to retain its functionality
+                return;
+            }
+
+            // Remember this one user's uid attribute
+            $uidsfound[] = $values[0];
+
+            unset($ldap_result); // Free mem
+        }
+
+        // After we have checked all contexts, verify that we have found only one user in total. If not, we can't continue, call parent hook and return
+        if (count($uidsfound) != 1) {
+            parent::loginpage_hook(); // Call parent function to retain its functionality
+            return;
+        }
+        // Success! Replace the form data's username with the user attribute from LDAP, it will be held in the global $frm variable
+        else {
+            $frm->username = $uidsfound[0];
+            parent::loginpage_hook(); // Call parent function to retain its functionality
+            return;
+        }
+    }
 }

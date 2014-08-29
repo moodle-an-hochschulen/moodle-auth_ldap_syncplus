@@ -5,6 +5,7 @@ Moodle authentication method which provides all functionality of auth_ldap, but 
 * It adds the possibility to the LDAP synchronization script to suspend users which have disappeared in LDAP for a configurable amount of days and delete them only after this grace period (the Moodle core LDAP synchronization script only provides you the option to suspend _or_ delete users which have disappeared in LDAP - MDL-47018).
 * You can prevent the LDAP synchronization script from creating Moodle accounts for all LDAP users if they have never logged into Moodle before (the Moodle core LDAP synchronization script always creates Moodle accounts for all LDAP users - MDL-29249).
 * You can fetch user details from LDAP on manual user creation (MDL-47029).
+* It supports login via email for first-time LDAP logins (Moodle core only supports login via email for existing Moodle users - MDL-46638)
 * It adds several line breaks to the output of the LDAP synchronization script to improve readability (MDL-30589).
 
 
@@ -15,6 +16,7 @@ This plugin requires Moodle 2.7+
 
 Changes
 -------
+* 2014-08-29 - Support login via email for first-time LDAP logins (MDL-46638)
 * 2014-08-29 - Update version.php
 * 2014-08-29 - Update README file
 * 2014-08-27 - Change line breaks to mtrace() (MDL-30589)
