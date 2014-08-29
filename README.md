@@ -14,6 +14,7 @@ This plugin requires Moodle 2.7+
 
 Changes
 =======
+2014-08-29 - Update version.php
 2014-08-29 - Update README file
 2014-08-27 - Change line breaks to mtrace() (MDL-30589)
 2014-08-25 - Support new event API, remove legacy event handling
