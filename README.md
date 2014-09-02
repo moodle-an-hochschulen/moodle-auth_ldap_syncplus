@@ -16,6 +16,7 @@ This plugin requires Moodle 2.7+
 
 Changes
 -------
+* 2014-09-02 - Bugfix: Check if LDAP auth is really used on manual user creation
 * 2014-08-29 - Support login via email for first-time LDAP logins (MDL-46638)
 * 2014-08-29 - Update version.php
 * 2014-08-29 - Update README file
