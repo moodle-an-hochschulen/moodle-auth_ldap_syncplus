@@ -26,13 +26,26 @@
 defined('MOODLE_INTERNAL') || die;
 
 function update_user_onevent($eventdata) {
-    // Do only if user has ldap_syncplus authentication and
-    // do only if username is enclosed in $eventdata - this event handler might be called twice when creating an user, so we have to handle this fact
-    if (isset($eventdata->auth) && $eventdata->auth == 'ldap_syncplus' && isset($eventdata->username) && is_string($eventdata->username)) {
-        // Get LDAP Plugin
-        $authplugin = get_auth_plugin('ldap_syncplus');
+    global $DB;
 
-        // Update user
-        $authplugin->update_user_record($eventdata->username);
+    // do only if user id is enclosed in $eventdata
+    if (!empty($eventdata->relateduserid)) {
+
+        // Get user data
+        $user = $DB->get_record('user', array('id' => $eventdata->relateduserid));
+
+        // Do if user was found
+        if (!empty($user->username)) {
+
+            // Do only if user has ldap_syncplus authentication
+            if (isset($user->auth) && $user->auth == 'ldap_syncplus') {
+
+                // Get LDAP Plugin
+                $authplugin = get_auth_plugin('ldap_syncplus');
+
+                // Update user
+                $authplugin->update_user_record($user->username);
+            }
+        }
     }
 }

@@ -354,7 +354,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 $maxxcount = 100;
 
                 foreach ($users as $user) {
-                    if (!$this->update_user_record($user->username, $updatekeys)) { // user_updated event is fired hereby
+                    if (!$this->update_user_record($user->username, $updatekeys)) {
                         $skipped = ' - '.get_string('skipped');
                     }
                     else {
