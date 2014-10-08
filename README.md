@@ -16,6 +16,7 @@ This plugin requires Moodle 2.7+
 
 Changes
 -------
+* 2014-10-08 - Adopt a code change in Moodle core auth_ldap
 * 2014-09-12 - Bugfix: Fetching user details from LDAP on manual user creation didn't work in some circumstances
 * 2014-09-02 - Bugfix: Check if LDAP auth is really used on manual user creation
 * 2014-08-29 - Support login via email for first-time LDAP logins (MDL-46638)
