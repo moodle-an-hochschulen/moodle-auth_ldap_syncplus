@@ -26,8 +26,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'auth_ldap_syncplus';
-$plugin->version = 2014051209;
-$plugin->release = '2.7 (Build: 2015012300)';
-$plugin->requires = 2014051200;
+$plugin->version = 2014111000;
+$plugin->release = '2.8 (Build: 2015012900)';
+$plugin->requires = 2014111000;
 $plugin->maturity = MATURITY_STABLE;
-$plugin->dependencies = array('auth_ldap' => 2014051200);
+$plugin->dependencies = array('auth_ldap' => 2014111000);

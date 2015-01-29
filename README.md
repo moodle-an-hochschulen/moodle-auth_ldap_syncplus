@@ -11,11 +11,12 @@ Moodle authentication method which provides all functionality of auth_ldap, but 
 
 Requirements
 ------------
-This plugin requires Moodle 2.7+
+This plugin requires Moodle 2.8+
 
 
 Changes
 -------
+* 2015-01-29 - Check compatibility for Moodle 2.8, no functionality change
 * 2015-01-23 - Adopt a code change in Moodle core auth_ldap
 * 2014-10-08 - Adopt a code change in Moodle core auth_ldap
 * 2014-09-12 - Bugfix: Fetching user details from LDAP on manual user creation didn't work in some circumstances
