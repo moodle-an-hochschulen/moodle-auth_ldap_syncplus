@@ -85,6 +85,8 @@ The auth_ldap_syncplus plugin acts behind the scenes, therefore it works with al
 
 Further information
 -------------------
+auth_ldap_syncplus is found in the Moodle Plugins repository: https://moodle.org/plugins/view/auth_ldap_syncplus
+
 Report a bug or suggest an improvement: https://github.com/moodleuulm/moodle-auth_ldap_syncplus/issues
 
 
