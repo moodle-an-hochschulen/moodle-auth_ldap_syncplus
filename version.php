@@ -30,4 +30,4 @@ $plugin->version = 2015051100;
 $plugin->release = '2.9 (Build: 2015081800)';
 $plugin->requires = 2015051100;
 $plugin->maturity = MATURITY_STABLE;
-$plugin->dependencies = array('auth_ldap' => 2014111000);
+$plugin->dependencies = array('auth_ldap' => 2015051100);
