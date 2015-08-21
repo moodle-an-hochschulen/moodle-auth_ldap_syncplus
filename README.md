@@ -20,6 +20,7 @@ Changes
 -------
 
 * 2015-08-18 - Check compatibility for Moodle 2.9, no functionality change
+* 2015-08-18 - Adopt a code change in Moodle core auth_ldap
 * 2015-01-29 - Check compatibility for Moodle 2.8, no functionality change
 * 2015-01-23 - Adopt a code change in Moodle core auth_ldap
 * 2014-10-08 - Adopt a code change in Moodle core auth_ldap
