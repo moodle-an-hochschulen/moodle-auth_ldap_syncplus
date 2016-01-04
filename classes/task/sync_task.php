@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Auth plugin "LDAP SyncPlus" - Version file
+ * Auth plugin "LDAP SyncPlus" - Task definition
  *
  * @package     auth
  * @subpackage  auth_ldap_syncplus
@@ -23,11 +23,38 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+namespace auth_ldap_syncplus\task;
 
-$plugin->component = 'auth_ldap_syncplus';
-$plugin->version = 2015111601;
-$plugin->release = '3.0 (Build: 2016010101)';
-$plugin->requires = 2015111600;
-$plugin->maturity = MATURITY_STABLE;
-$plugin->dependencies = array('auth_ldap' => 2015111600);
+/**
+ * The auth_ldap_syncplus scheduled task class for LDAP user sync
+ *
+ * @package     auth
+ * @subpackage  auth_ldap_syncplus
+ * @copyright   2014 Alexander Bias, University of Ulm <alexander.bias@uni-ulm.de>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class sync_task extends \core\task\scheduled_task {
+
+    /**
+     * Return localised task name.
+     *
+     * @return string
+     */
+    public function get_name() {
+        return get_string('synctask', 'auth_ldap_syncplus');
+    }
+
+    /**
+     * Execute scheduled task
+     *
+     * @return boolean
+     */
+    public function execute() {
+        global $CFG;
+        if (is_enabled_auth('ldap_syncplus')) {
+            $auth = get_auth_plugin('ldap_syncplus');
+            $auth->sync_users(true);
+        }
+    }
+
+}

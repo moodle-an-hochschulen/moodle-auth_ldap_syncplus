@@ -27,6 +27,7 @@ define('CLI_SCRIPT', true);
 
 require(dirname(dirname(dirname(dirname(__FILE__)))).'/config.php'); // global moodle config file.
 require_once($CFG->dirroot.'/course/lib.php');
+require_once($CFG->libdir.'/clilib.php');
 
 // Ensure errors are well explained
 set_debugging(DEBUG_DEVELOPER, true);
@@ -34,6 +35,14 @@ set_debugging(DEBUG_DEVELOPER, true);
 if (!is_enabled_auth('ldap_syncplus')) {
     error_log('[AUTH LDAP SYNCPLUS] '.get_string('pluginnotenabled', 'auth_ldap'));
     die;
+}
+
+cli_problem('[AUTH LDAP SYNCPLUS] The users sync cron has been deprecated. Please use the scheduled task instead.');
+
+// Abort execution of the CLI script if the auth_ldap_syncplus\task\sync_task is enabled.
+$taskdisabled = \core\task\manager::get_scheduled_task('auth_ldap_syncplus\task\sync_task');
+if (!$taskdisabled->get_disabled()) {
+    cli_error('[AUTH LDAP SYNCPLUS] The scheduled task sync_task is enabled, the cron execution has been aborted.');
 }
 
 $ldapauth = get_auth_plugin('ldap_syncplus');

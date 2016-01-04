@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Auth plugin "LDAP SyncPlus" - Version file
+ * Auth plugin "LDAP SyncPlus" - Scheduled tasks
  *
  * @package     auth
  * @subpackage  auth_ldap_syncplus
@@ -25,9 +25,15 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'auth_ldap_syncplus';
-$plugin->version = 2015111601;
-$plugin->release = '3.0 (Build: 2016010101)';
-$plugin->requires = 2015111600;
-$plugin->maturity = MATURITY_STABLE;
-$plugin->dependencies = array('auth_ldap' => 2015111600);
+$tasks = array(
+    array(
+        'classname' => 'auth_ldap_syncplus\task\sync_task',
+        'blocking' => 0,
+        'minute' => '0',
+        'hour' => '0',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+        'disabled' => 1
+    )
+);

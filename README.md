@@ -1,13 +1,13 @@
 moodle-auth_ldap_syncplus
 =========================
 
-Moodle authentication method which provides all functionality of auth_ldap, but supports advanced features for the LDAP synchronization script:
+Moodle authentication method which provides all functionality of auth_ldap, but supports advanced features for the LDAP synchronization task:
 
-* It adds the possibility to the LDAP synchronization script to suspend users which have disappeared in LDAP for a configurable amount of days and delete them only after this grace period (the Moodle core LDAP synchronization script only provides you the option to suspend _or_ delete users which have disappeared in LDAP - MDL-47018).
-* You can prevent the LDAP synchronization script from creating Moodle accounts for all LDAP users if they have never logged into Moodle before (the Moodle core LDAP synchronization script always creates Moodle accounts for all LDAP users - MDL-29249).
+* It adds the possibility to the LDAP synchronization task to suspend users which have disappeared in LDAP for a configurable amount of days and delete them only after this grace period (the Moodle core LDAP synchronization task only provides you the option to suspend _or_ delete users which have disappeared in LDAP - MDL-47018).
+* You can prevent the LDAP synchronization task from creating Moodle accounts for all LDAP users if they have never logged into Moodle before (the Moodle core LDAP synchronization task always creates Moodle accounts for all LDAP users - MDL-29249).
 * You can fetch user details from LDAP on manual user creation (MDL-47029).
 * It supports login via email for first-time LDAP logins (Moodle core only supports login via email for existing Moodle users - MDL-46638)
-* It adds several line breaks to the output of the LDAP synchronization script to improve readability (MDL-30589).
+* It adds several line breaks to the output of the LDAP synchronization task to improve readability (MDL-30589).
 
 
 Requirements
@@ -19,6 +19,7 @@ This plugin requires Moodle 3.0+
 Changes
 -------
 
+* 2016-01-01 - Adopt code changes in Moodle core auth_ldap, including the new scheduled task feature. If you have used a LDAP syncronization cron job before, please use the LDAP syncronisation scheduled task from now on (for details, see "Configuring LDAP synchronization task" section below)
 * 2016-01-01 - Check compatibility for Moodle 3.0, no functionality change
 * 2015-08-18 - Check compatibility for Moodle 2.9, no functionality change
 * 2015-08-18 - Adopt a code change in Moodle core auth_ldap
@@ -57,11 +58,11 @@ To make use of this plugin, you have to configure it on admin page /admin/auth_c
 
 Please note that there are additional setting items in settings section "Cron synchronization script" compared to the Moodle core LDAP authentication method:
 
-1. Setting "Removed ext user" has an additional option called "Suspend internal and fully delete internal after grace period". If you select this option, the synchronization script will suspend users which have disappeared in LDAP for a configurable amount of days and delete them only after this grace period. If the user reappears in LDAP within the grace period, his Moodle account is revived and he can login again into Moodle as he did before.
+1. Setting "Removed ext user" has an additional option called "Suspend internal and fully delete internal after grace period". If you select this option, the synchronization task will suspend users which have disappeared in LDAP for a configurable amount of days and delete them only after this grace period. If the user reappears in LDAP within the grace period, his Moodle account is revived and he can login again into Moodle as he did before.
 
 2. Setting "Fully deleting grace period": With this setting (Default: 10 days), you can control the length of the grace period until a user account is fully deleted after it has disappeared from LDAP.
 
-3. Setting "Add new users": With this setting (Default: yes), you can prevent the synchronization script from creating Moodle accounts for all LDAP users if they have never logged into Moodle before.
+3. Setting "Add new users": With this setting (Default: yes), you can prevent the synchronization task from creating Moodle accounts for all LDAP users if they have never logged into Moodle before.
 
 After configuring the LDAP SyncPlus authentication method, you should activate the plugin on admin page /admin/settings.php?section=manageauths so that users can be authenticated with this authentication method. Afterwars, you can deactivate the Moodle core LDAP authentication method as it is not needed anymore actively.
 
@@ -69,12 +70,12 @@ Note: If you already have users in your Moodle installation who authenticate usi
 UPDATE mdl_user SET auth='ldap_syncplus' WHERE auth='ldap'
 
 
-Running LDAP synchronization script
------------------------------------
+Configuring LDAP synchronization task
+-------------------------------------
 
-To leverage the additional LDAP synchronization features of auth_ldap_syncplus, you have to change your synchronization cronjob from /auth/ldap/cli/sync_users.php to /auth/ldap_syncplus/cli/sync_users.php.
+To leverage the additional LDAP synchronization features of auth_ldap_syncplus, you have to disable the synchronization task of the Moodle core auth_ldap plugin and activate and configure the scheduled task of auth_ldap_syncplus. This is done on Site administration -> Server -> Scheduled tasks.
 
-If you don't know how to setup your synchronization cronjob, see http://docs.moodle.org/en/LDAP_authentication#Setting_up_regular_automatic_synchronisation_using_cron and the comments in /auth/ldap/cli/sync_users.php for details.
+If you don't know how to setup your synchronization cronjob at all, see https://docs.moodle.org/30/en/LDAP_authentication#Enabling_the_LDAP_users_syncronisation_scheduled_task.
 
 
 Fetching user details from LDAP on manual user creation

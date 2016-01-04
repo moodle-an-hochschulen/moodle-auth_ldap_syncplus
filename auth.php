@@ -36,11 +36,18 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
     /**
      * Constructor with initialisation.
      */
-    function auth_plugin_ldap_syncplus() {
+    public function __construct() {
         $this->authtype = 'ldap_syncplus';
         $this->roleauth = 'auth_ldap';
         $this->errorlogtag = '[AUTH LDAP SYNCPLUS] ';
         $this->init_plugin($this->authtype);
+    }
+
+    /**
+     * Old syntax of class constructor for backward compatibility.
+     */
+    public function auth_plugin_ldap_syncplus() {
+        self::__construct();
     }
 
 
