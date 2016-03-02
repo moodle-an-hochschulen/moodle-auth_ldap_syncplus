@@ -17,10 +17,9 @@
 /**
  * Auth plugin "LDAP SyncPlus"
  *
- * @package     auth
- * @subpackage  auth_ldap_syncplus
- * @copyright   2014 Alexander Bias, University of Ulm <alexander.bias@uni-ulm.de>
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    auth_ldap_syncplus
+ * @copyright  2014 Alexander Bias, University of Ulm <alexander.bias@uni-ulm.de>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die;

@@ -17,10 +17,9 @@
 /**
  * Auth plugin "LDAP SyncPlus" - Language pack
  *
- * @package     auth
- * @subpackage  auth_syncplus
- * @copyright   2014 Alexander Bias, University of Ulm <alexander.bias@uni-ulm.de>
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    auth_syncplus
+ * @copyright  2014 Alexander Bias, University of Ulm <alexander.bias@uni-ulm.de>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 $string['pluginname'] = 'LDAP server (Sync Plus)';

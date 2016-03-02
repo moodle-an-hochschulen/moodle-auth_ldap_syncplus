@@ -17,10 +17,9 @@
 /**
  * Auth plugin "LDAP SyncPlus" - Task definition
  *
- * @package     auth
- * @subpackage  auth_ldap_syncplus
- * @copyright   2014 Alexander Bias, University of Ulm <alexander.bias@uni-ulm.de>
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    auth_ldap_syncplus
+ * @copyright  2014 Alexander Bias, University of Ulm <alexander.bias@uni-ulm.de>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace auth_ldap_syncplus\task;
@@ -28,10 +27,9 @@ namespace auth_ldap_syncplus\task;
 /**
  * The auth_ldap_syncplus scheduled task class for LDAP user sync
  *
- * @package     auth
- * @subpackage  auth_ldap_syncplus
- * @copyright   2014 Alexander Bias, University of Ulm <alexander.bias@uni-ulm.de>
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    auth_ldap_syncplus
+ * @copyright  2014 Alexander Bias, University of Ulm <alexander.bias@uni-ulm.de>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class sync_task extends \core\task\scheduled_task {
 
