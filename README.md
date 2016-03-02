@@ -19,6 +19,7 @@ This plugin requires Moodle 3.0+
 Changes
 -------
 
+* 2016-02-10 - Change plugin version and release scheme to the scheme promoted by moodle.org, no functionality change
 * 2016-01-01 - Adopt code changes in Moodle core auth_ldap, including the new scheduled task feature. If you have used a LDAP syncronization cron job before, please use the LDAP syncronisation scheduled task from now on (for details, see "Configuring LDAP synchronization task" section below)
 * 2016-01-01 - Check compatibility for Moodle 3.0, no functionality change
 * 2015-08-18 - Check compatibility for Moodle 2.9, no functionality change
