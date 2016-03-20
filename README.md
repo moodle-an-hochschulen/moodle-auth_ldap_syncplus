@@ -71,12 +71,12 @@ Note: If you already have users in your Moodle installation who authenticate usi
 UPDATE mdl_user SET auth='ldap_syncplus' WHERE auth='ldap'
 
 
-Configuring LDAP synchronization task
--------------------------------------
+Configuring LDAP User account syncronisation
+--------------------------------------------
 
-To leverage the additional LDAP synchronization features of auth_ldap_syncplus, you have to disable the synchronization task of the Moodle core auth_ldap plugin and activate and configure the scheduled task of auth_ldap_syncplus. This is done on Site administration -> Server -> Scheduled tasks.
+To leverage the additional LDAP synchronization features of auth_ldap_syncplus, you have to disable the scheduled task of the Moodle core auth_ldap plugin and activate and configure the scheduled task of auth_ldap_syncplus. This is done on Site administration -> Server -> Scheduled tasks.
 
-If you don't know how to setup your synchronization cronjob at all, see https://docs.moodle.org/30/en/LDAP_authentication#Enabling_the_LDAP_users_syncronisation_scheduled_task.
+If you don't know how to setup LDAP User account syncronisation at all, see https://docs.moodle.org/en/LDAP_authentication#Enabling_the_LDAP_users_sync_job.
 
 
 Fetching user details from LDAP on manual user creation
