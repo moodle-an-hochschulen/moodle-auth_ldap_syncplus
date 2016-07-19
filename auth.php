@@ -45,9 +45,12 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
     }
 
     /**
-     * Old syntax of class constructor for backward compatibility.
+     * Old syntax of class constructor. Deprecated in PHP7.
+     *
+     * @deprecated since Moodle 3.1
      */
     public function auth_plugin_ldap_syncplus() {
+        debugging('Use of class name as constructor is deprecated', DEBUG_DEVELOPER);
         self::__construct();
     }
 
@@ -338,6 +341,9 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     }
                 }
             }
+            if ($this->config->suspended_attribute && $this->config->sync_suspended) {
+                $updatekeys[] = 'suspended';
+            }
             unset($all_keys); unset($key);
         } else {
             mtrace(get_string('noupdatestobedone', 'auth_ldap'));
@@ -422,6 +428,12 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     // get_userinfo_asobj() might have replaced $user->username with the value
                     // from the LDAP server (which can be mixed-case). Make sure it's lowercase
                     $user->username = trim(core_text::strtolower($user->username));
+                    // It isn't possible to just rely on the configured suspension attribute since
+                    // things like active directory use bit masks, other things using LDAP might
+                    // do different stuff as well.
+                    //
+                    // The cast to int is a workaround for MDL-53959.
+                    $user->suspended = (int)$this->is_user_suspended($user);
                     if (empty($user->lang)) {
                         $user->lang = $CFG->lang;
                     }
@@ -503,6 +515,12 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         }
         if (!isset($config->user_attribute)) {
              $config->user_attribute = '';
+        }
+        if (!isset($config->suspended_attribute)) {
+            $config->suspended_attribute = '';
+        }
+        if (!isset($config->sync_suspended)) {
+            $config->sync_suspended = false;
         }
         if (!isset($config->search_sub)) {
              $config->search_sub = '';
@@ -606,6 +624,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         set_config('contexts', $config->contexts, $this->pluginconfig);
         set_config('user_type', core_text::strtolower(trim($config->user_type)), $this->pluginconfig);
         set_config('user_attribute', core_text::strtolower(trim($config->user_attribute)), $this->pluginconfig);
+        set_config('suspended_attribute', core_text::strtolower(trim($config->suspended_attribute)), $this->pluginconfig);
+        set_config('sync_suspended', $config->sync_suspended, $this->pluginconfig);
         set_config('search_sub', $config->search_sub, $this->pluginconfig);
         set_config('opt_deref', $config->opt_deref, $this->pluginconfig);
         set_config('preventpassindb', $config->preventpassindb, $this->pluginconfig);
