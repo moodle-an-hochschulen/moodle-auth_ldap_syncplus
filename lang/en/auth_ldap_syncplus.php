@@ -29,6 +29,8 @@ $string['auth_ldap_syncplusdescription'] = 'This method provides authentication 
                                   wanted fields in Moodle.  For following logins only the username and
                                   password are checked.';
 $string['auth_remove_deletewithgraceperiod'] = 'Suspend internal and fully delete internal after grace period';
+$string['custom_filter_key'] = 'Custom LDAP filter';
+$string['custom_filter'] = 'Optional: Custom LDAP filter; %u is substituted by the submitted username (%e for the email-address) in the login-form. The object class will be ignored. You have to set it by your own. Example: <tt>(&(|(mail=%e)(userPrincipalName=%e)(userPrincipalName=%u@stud.thga.de)(otherIpPhone=%e))user)</tt>';
 $string['nouserentriestosuspend'] = 'No user entries to be suspended';
 $string['removeuser_graceperiod'] = 'Fully deleting grace period';
 $string['removeuser_graceperiod_desc'] = 'After suspending a user internally, the synchronization script will wait for this number of days until the user will be fully deleted internal. If the user re-appears in LDAP within this grace period, the user will be reactivated. Note: This setting is only used if "Removed ext user" is set to "Suspend internal and fully delete internal after grace period"';

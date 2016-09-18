@@ -109,7 +109,9 @@ if (!isset($config->ntlmsso_type)) {
 if (!isset($config->ntlmsso_remoteuserformat)) {
     $config->ntlmsso_remoteuserformat = '';
 }
-
+if (!isset($config->custom_filter)) {
+    $config->custom_filter = '';
+}
 $yesno = array(get_string('no'), get_string('yes'));
 
 $fastpathoptions = array(AUTH_NTLM_FASTPATH_YESFORM => get_string('auth_ntlmsso_ie_fastpath_yesform', 'auth_ldap'),
@@ -309,6 +311,18 @@ if (!ldap_paged_results_supported($config->ldap_version)) {
     </td>
     <td>
         <?php print_string('auth_ldap_user_attribute', 'auth_ldap') ?>
+    </td>
+</tr>
+<tr valign="top" class="required">
+    <td align="right">
+        <label for="user_attribute"><?php print_string('custom_filter_key', 'auth_ldap_syncplus') ?></label>
+    </td>
+    <td>
+        <input name="user_attribute" id="user_attribute" type="text" size="30" value="<?php echo $config->custom_filter?>" />
+        <?php if (isset($err['user_attribute'])) { echo $OUTPUT->error_text($err['user_attribute']); } ?>
+    </td>
+    <td>
+        <?php print_string('custom_filter', 'auth_ldap_syncplus') ?>
     </td>
 </tr>
 <tr valign="top" class="required">
