@@ -741,9 +741,6 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 continue;
             }
 
-            // Get users in LDAP result
-            $users = ldap_get_entries_moodle($ldapconnection, $ldap_result);
-
             // If there is not exactly one matching user, we can't continue, call parent hook and return
             if (ldap_count_entries($ldapconnection, $ldap_result) != 1) {
                 parent::loginpage_hook(); // Call parent function to retain its functionality
