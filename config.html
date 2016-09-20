@@ -315,18 +315,6 @@ if (!ldap_paged_results_supported($config->ldap_version)) {
 </tr>
 <tr valign="top" class="required">
     <td align="right">
-        <label for="user_attribute"><?php print_string('custom_filter_key', 'auth_ldap_syncplus') ?></label>
-    </td>
-    <td>
-        <input name="user_attribute" id="user_attribute" type="text" size="30" value="<?php echo $config->custom_filter?>" />
-        <?php if (isset($err['user_attribute'])) { echo $OUTPUT->error_text($err['user_attribute']); } ?>
-    </td>
-    <td>
-        <?php print_string('custom_filter', 'auth_ldap_syncplus') ?>
-    </td>
-</tr>
-<tr valign="top" class="required">
-    <td align="right">
         <label for="memberattribute"><?php print_string('auth_ldap_memberattribute_key', 'auth_ldap') ?></label>
     </td>
     <td>
@@ -359,6 +347,18 @@ if (!ldap_paged_results_supported($config->ldap_version)) {
     </td>
     <td>
         <?php print_string('auth_ldap_objectclass', 'auth_ldap') ?>
+    </td>
+</tr>
+<tr valign="top" class="required">
+    <td align="right">
+        <label for="custom_filter"><?php print_string('custom_filter_key', 'auth_ldap_syncplus') ?></label>
+    </td>
+    <td>
+        <input name="custom_filter" id="custom_filter" type="text" size="30" value="<?php echo $config->custom_filter?>" />
+        <?php if (isset($err['custom_filter'])) { echo $OUTPUT->error_text($err['custom_filter']); } ?>
+    </td>
+    <td>
+        <?php print_string('custom_filter', 'auth_ldap_syncplus') ?>
     </td>
 </tr>
 <tr>
