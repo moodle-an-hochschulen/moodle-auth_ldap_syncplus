@@ -39,5 +39,3 @@ $string['sync_script_createuser_enabled_key'] = 'Add new users';
 $string['synctask'] = 'LDAP users sync job (Sync Plus)';
 $string['userentriestosuspend'] = 'User entries to be suspended: {$a}';
 $string['waitinginremovalqueue'] = 'Waiting in removal queue for {$a->days} day grace period: {$a->name} ID {$a->id}';
-
-
