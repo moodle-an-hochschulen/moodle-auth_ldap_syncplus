@@ -736,7 +736,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             }
 
             // If there is an error in the LDAP result,
-	    // or the user was not found: continue with next context
+            // or the user was not found: continue with next context
             if (!$ldap_result || ldap_count_entries($ldapconnection, $ldap_result) == 0)  {
                 continue;
             }
