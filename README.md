@@ -134,7 +134,7 @@ Please vote for this ticket if you want to have this realized.
 Copyright
 ---------
 
-University of Ulm
+Ulm University
 kiz - Media Department
 Team Web & Teaching Support
 Alexander Bias
