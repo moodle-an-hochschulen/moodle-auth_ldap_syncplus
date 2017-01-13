@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2017-01-13 - Adopt code changes in Moodle 3.2 core auth_ldap
 * 2017-01-12 - Move Changelog from README.md to CHANGES.md
 
 ### v3.1-r1
