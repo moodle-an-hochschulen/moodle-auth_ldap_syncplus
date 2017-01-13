@@ -13,7 +13,7 @@ Moodle authentication method which provides all functionality of auth_ldap, but 
 Requirements
 ------------
 
-This plugin requires Moodle 3.1+
+This plugin requires Moodle 3.2+
 
 
 Installation
