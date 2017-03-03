@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2017-03-03 - Adopt code changes in Moodle 3.2 core auth_ldap
+
 ### v3.2-r1
 
 * 2017-01-13 - Check compatibility for Moodle 3.2, no functionality change
