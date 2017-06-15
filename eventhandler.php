@@ -24,25 +24,31 @@
 
 defined('MOODLE_INTERNAL') || die;
 
+/**
+ * Event handler function.
+ *
+ * @param object $eventdata Event data
+ * @return void
+ */
 function update_user_onevent($eventdata) {
     global $DB;
 
-    // do only if user id is enclosed in $eventdata
+    // Do only if user id is enclosed in $eventdata.
     if (!empty($eventdata->relateduserid)) {
 
-        // Get user data
+        // Get user data.
         $user = $DB->get_record('user', array('id' => $eventdata->relateduserid));
 
-        // Do if user was found
+        // Do if user was found.
         if (!empty($user->username)) {
 
-            // Do only if user has ldap_syncplus authentication
+            // Do only if user has ldap_syncplus authentication.
             if (isset($user->auth) && $user->auth == 'ldap_syncplus') {
 
-                // Get LDAP Plugin
+                // Get LDAP Plugin.
                 $authplugin = get_auth_plugin('ldap_syncplus');
 
-                // Update user
+                // Update user.
                 $authplugin->update_user_record($user->username);
             }
         }
