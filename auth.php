@@ -783,3 +783,4 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         }
     }
 }
+
