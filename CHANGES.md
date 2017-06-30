@@ -4,7 +4,7 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
-### Unreleased
+### v3.2-r4
 
 * 2017-05-29 - Add Travis CI support
 
