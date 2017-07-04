@@ -24,6 +24,9 @@
 
 define('CLI_SCRIPT', true);
 
+// @codingStandardsIgnoreFile
+// Let codechecker ignore this file. This code mostly re-used from auth_ldap and the problems are already there and not made by us.
+
 require(__DIR__.'/../../../config.php'); // global moodle config file.
 require_once($CFG->dirroot.'/course/lib.php');
 require_once($CFG->libdir.'/clilib.php');

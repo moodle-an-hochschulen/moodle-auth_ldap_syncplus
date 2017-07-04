@@ -24,6 +24,9 @@
 
 defined('MOODLE_INTERNAL') || die;
 
+// @codingStandardsIgnoreFile
+// Let codechecker ignore this file. This code mostly re-used from auth_ldap and the problems are already there and not made by us.
+
 global $CFG;
 
 require_once($CFG->libdir.'/authlib.php');
