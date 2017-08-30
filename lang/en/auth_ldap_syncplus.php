@@ -17,8 +17,8 @@
 /**
  * Auth plugin "LDAP SyncPlus" - Language pack
  *
- * @package    auth_syncplus
- * @copyright  2014 Alexander Bias, University of Ulm <alexander.bias@uni-ulm.de>
+ * @package    auth_ldap_syncplus
+ * @copyright  2014 Alexander Bias, Ulm University <alexander.bias@uni-ulm.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

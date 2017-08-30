@@ -18,11 +18,14 @@
  * Auth plugin "LDAP SyncPlus"
  *
  * @package    auth_ldap_syncplus
- * @copyright  2014 Alexander Bias, University of Ulm <alexander.bias@uni-ulm.de>
+ * @copyright  2014 Alexander Bias, Ulm University <alexander.bias@uni-ulm.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die;
+
+// @codingStandardsIgnoreFile
+// Let codechecker ignore this file. This code mostly re-used from auth_ldap and the problems are already there and not made by us.
 
 global $CFG;
 
@@ -45,9 +48,12 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
     }
 
     /**
-     * Old syntax of class constructor for backward compatibility.
+     * Old syntax of class constructor. Deprecated in PHP7.
+     *
+     * @deprecated since Moodle 3.1
      */
     public function auth_plugin_ldap_syncplus() {
+        debugging('Use of class name as constructor is deprecated', DEBUG_DEVELOPER);
         self::__construct();
     }
 
@@ -93,7 +99,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             array_push($contexts, $this->config->create_context);
         }
 
-        $ldap_pagedresults = ldap_paged_results_supported($this->config->ldap_version);
+        $ldap_pagedresults = ldap_paged_results_supported($this->config->ldap_version, $ldapconnection);
         $ldap_cookie = '';
         foreach ($contexts as $context) {
             $context = trim($context);
@@ -279,7 +285,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     $updateuser = new stdClass();
                     $updateuser->id = $user->id;
                     $updateuser->suspended = 1;
-                    $updateuser->timemodified = time(); // Remember suspend time, abuse timemodified column for this
+                    $updateuser->timemodified = time(); // Remember suspend time, abuse timemodified column for this.
                     user_update_user($updateuser, false);
                     mtrace("\t".get_string('auth_dbsuspenduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                     \core\session\manager::kill_user_sessions($user->id);
@@ -303,16 +309,16 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
                 foreach ($remove_users as $user) {
                     // Do only if user was suspended before grace period
-                    $graceperiod = max(intval($this->config->removeuser_graceperiod),0); // Fix problems if grace period setting was negative or no number
+                    $graceperiod = max(intval($this->config->removeuser_graceperiod), 0);
+                            // Fix problems if grace period setting was negative or no number.
                     if (time() - $user->timemodified >= $graceperiod * 24 * 3600) {
                         if (delete_user($user)) {
                             mtrace("\t".get_string('auth_dbdeleteuser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                         } else {
                             mtrace("\t".get_string('auth_dbdeleteusererror', 'auth_db', $user->username));
                         }
-                    }
-                    // Otherwise inform about ongoing grace period
-                    else {
+                        // Otherwise inform about ongoing grace period.
+                    } else {
                         mtrace("\t".get_string('waitinginremovalqueue', 'auth_ldap_syncplus', array('days'=>$graceperiod, 'name'=>$user->username, 'id'=>$user->id)));
                     }
                 }
@@ -337,6 +343,9 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                         array_push($updatekeys, $match[1]); // the actual key name
                     }
                 }
+            }
+            if ($this->config->suspended_attribute && $this->config->sync_suspended) {
+                $updatekeys[] = 'suspended';
             }
             unset($all_keys); unset($key);
         } else {
@@ -422,6 +431,12 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     // get_userinfo_asobj() might have replaced $user->username with the value
                     // from the LDAP server (which can be mixed-case). Make sure it's lowercase
                     $user->username = trim(core_text::strtolower($user->username));
+                    // It isn't possible to just rely on the configured suspension attribute since
+                    // things like active directory use bit masks, other things using LDAP might
+                    // do different stuff as well.
+                    //
+                    // The cast to int is a workaround for MDL-53959.
+                    $user->suspended = (int)$this->is_user_suspended($user);
                     if (empty($user->lang)) {
                         $user->lang = $CFG->lang;
                     }
@@ -503,6 +518,12 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         }
         if (!isset($config->user_attribute)) {
              $config->user_attribute = '';
+        }
+        if (!isset($config->suspended_attribute)) {
+            $config->suspended_attribute = '';
+        }
+        if (!isset($config->sync_suspended)) {
+            $config->sync_suspended = false;
         }
         if (!isset($config->search_sub)) {
              $config->search_sub = '';
@@ -612,6 +633,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         set_config('contexts', $config->contexts, $this->pluginconfig);
         set_config('user_type', core_text::strtolower(trim($config->user_type)), $this->pluginconfig);
         set_config('user_attribute', core_text::strtolower(trim($config->user_attribute)), $this->pluginconfig);
+        set_config('suspended_attribute', core_text::strtolower(trim($config->suspended_attribute)), $this->pluginconfig);
+        set_config('sync_suspended', $config->sync_suspended, $this->pluginconfig);
         set_config('search_sub', $config->search_sub, $this->pluginconfig);
         set_config('opt_deref', $config->opt_deref, $this->pluginconfig);
         set_config('preventpassindb', $config->preventpassindb, $this->pluginconfig);
@@ -649,8 +672,9 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
     /**
      * Support login via email ($CFG->authloginviaemail) for first-time LDAP logins
+     * @return void
      */
-    function loginpage_hook(){
+    public function loginpage_hook() {
         global $CFG, $frm, $DB;
 
         // Get auth plugin
@@ -663,12 +687,12 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             return;
         }
 
-        // Get submitted form data
+        // Get submitted form data.
         $frm = data_submitted();
 
-        // If there is no username submitted, there's nothing to do, call parent hook and return
+        // If there is no username submitted, there's nothing to do, call parent hook and return.
         if (empty($frm->username)) {
-            parent::loginpage_hook(); // Call parent function to retain its functionality
+            parent::loginpage_hook(); // Call parent function to retain its functionality.
             return;
         }
 
@@ -688,19 +712,23 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             }
 
             // Prepare a LDAP-filter with the configured email-attribute
-            $filter = '(&('.$authplugin->config->field_map_email.'='.ldap_filter_addslashes($email).')'.$authplugin->config->objectclass.')';
+            $filter = '(&('.$authplugin->config->field_map_email.'='.ldap_filter_addslashes($email).')'.
+                $authplugin->config->objectclass.')';
 
-            // If there is an existing useraccount with this email adress as email adress (then a Moodle account already exists and the standard mechanism of $CFG->authloginviaemail will kick in automatically)
-            // or if there is an existing useraccount with this email adress as username (which is not forbidden, so this useraccount has to be used), call parent hook and return
+            // If there is an existing useraccount with this email adress as email adress (then a Moodle account already exists and
+            // the standard mechanism of $CFG->authloginviaemail will kick in automatically) or if there is an existing useraccount
+            // with this email adress as username (which is not forbidden, so this useraccount has to be used), call parent hook and
+            // return.
             if ($DB->count_records_select('user', '(username = :p1 OR email = :p2) AND deleted = 0',
                                             array('p1' => $email, 'p2' => $email)) > 0) {
                 parent::loginpage_hook(); // Call parent function to retain its functionality
                 return;
             }
 
-            // If there is no email field mapping configured, we don't know where we can find the email adress in LDAP, call parent hook and return
+            // If there is no email field mapping configured, we don't know where we can find the email adress in LDAP,
+            // call parent hook and return.
             if (empty($authplugin->config->field_map_email)) {
-                parent::loginpage_hook(); // Call parent function to retain its functionality
+                parent::loginpage_hook(); // Call parent function to retain its functionality.
                 return;
             }
         } else {
@@ -710,77 +738,76 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 $filter = str_replace($filter_in, $filter_vars, $filter);
         }
 
-        // Prepare LDAP search
+        // Prepare LDAP search.
         $contexts = explode(';', $authplugin->config->contexts);
 
-        // Connect to LDAP
+        // Connect to LDAP.
         $ldapconnection = $authplugin->ldap_connect();
 
-        // Array for saving the user's ids which are found in the configured LDAP contexts
+        // Array for saving the user's ids which are found in the configured LDAP contexts.
         $uidsfound = array();
 
-        // Look for users matching the given email adress in LDAP
+        // Look for users matching the given email adress in LDAP.
         foreach ($contexts as $context) {
-            // Verify that the given context is valid
+            // Verify that the given context is valid.
             $context = trim($context);
             if (empty($context)) {
                 continue;
             }
 
-            // Search LDAP
+            // Search LDAP.
             if ($authplugin->config->search_sub) {
-                // Use ldap_search to find first user from subtree
-                $ldap_result = ldap_search($ldapconnection, $context, $filter, array($authplugin->config->user_attribute));
-            }
-            else {
-                // Search only in this context
-                $ldap_result = ldap_list($ldapconnection, $context, $filter, array($authplugin->config->user_attribute));
+                // Use ldap_search to find first user from subtree.
+                $ldapresult = ldap_search($ldapconnection, $context, $filter, array($authplugin->config->user_attribute));
+            } else {
+                // Search only in this context.
+                $ldapresult = ldap_list($ldapconnection, $context, $filter, array($authplugin->config->user_attribute));
             }
 
-            // If there is no LDAP result, continue with next context
-            if (!$ldap_result) {
+            // If there is no LDAP result, continue with next context.
+            if (!$ldapresult) {
                 continue;
             }
 
-            // Get users in LDAP result
-            $users = ldap_get_entries_moodle($ldapconnection, $ldap_result);
-
-            // If there is not exactly one matching user, we can't continue, call parent hook and return
-            if (ldap_count_entries($ldapconnection, $ldap_result) != 1) {
-                parent::loginpage_hook(); // Call parent function to retain its functionality
+            // If there is not exactly one matching user, we can't continue, call parent hook and return.
+            if (ldap_count_entries($ldapconnection, $ldapresult) != 1) {
+                parent::loginpage_hook(); // Call parent function to retain its functionality.
                 return;
             }
 
-            // Get this one matching user entry
-            if (!$ldap_entry = ldap_first_entry($ldapconnection, $ldap_result)) {
-                parent::loginpage_hook(); // Call parent function to retain its functionality
+            // Get this one matching user entry.
+            if (!$ldapentry = ldap_first_entry($ldapconnection, $ldapresult)) {
+                parent::loginpage_hook(); // Call parent function to retain its functionality.
                 return;
             }
 
-            // Get the uid attribute's value(s) from this user entry
-            $values = ldap_get_values($ldapconnection, $ldap_entry, $authplugin->config->user_attribute);
+            // Get the uid attribute's value(s) from this user entry.
+            $values = ldap_get_values($ldapconnection, $ldapentry, $authplugin->config->user_attribute);
 
-            // If there is not exactly one copy of the uid attribute in the LDAP user entry, we don't know which one to use, call parent hook and return
+            // If there is not exactly one copy of the uid attribute in the LDAP user entry, we don't know which one to use,
+            // call parent hook and return.
             if ($values['count'] != 1) {
-                parent::loginpage_hook(); // Call parent function to retain its functionality
+                parent::loginpage_hook(); // Call parent function to retain its functionality.
                 return;
             }
 
-            // Remember this one user's uid attribute
+            // Remember this one user's uid attribute.
             $uidsfound[] = $values[0];
 
-            unset($ldap_result); // Free mem
+            unset($ldapresult); // Free mem!
         }
 
-        // After we have checked all contexts, verify that we have found only one user in total. If not, we can't continue, call parent hook and return
+        // After we have checked all contexts, verify that we have found only one user in total.
+        // If not, we can't continue, call parent hook and return.
         if (count($uidsfound) != 1) {
-            parent::loginpage_hook(); // Call parent function to retain its functionality
+            parent::loginpage_hook(); // Call parent function to retain its functionality.
             return;
-        }
-        // Success! Replace the form data's username with the user attribute from LDAP, it will be held in the global $frm variable
-        else {
+
+            // Success!
+            // Replace the form data's username with the user attribute from LDAP, it will be held in the global $frm variable.
+        } else {
             $frm->username = $uidsfound[0];
-            parent::loginpage_hook(); // Call parent function to retain its functionality
+            parent::loginpage_hook(); // Call parent function to retain its functionality.
             return;
         }
     }

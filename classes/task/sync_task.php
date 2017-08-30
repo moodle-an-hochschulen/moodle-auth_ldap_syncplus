@@ -18,17 +18,19 @@
  * Auth plugin "LDAP SyncPlus" - Task definition
  *
  * @package    auth_ldap_syncplus
- * @copyright  2014 Alexander Bias, University of Ulm <alexander.bias@uni-ulm.de>
+ * @copyright  2014 Alexander Bias, Ulm University <alexander.bias@uni-ulm.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace auth_ldap_syncplus\task;
 
+defined('MOODLE_INTERNAL') || die;
+
 /**
  * The auth_ldap_syncplus scheduled task class for LDAP user sync
  *
  * @package    auth_ldap_syncplus
- * @copyright  2014 Alexander Bias, University of Ulm <alexander.bias@uni-ulm.de>
+ * @copyright  2014 Alexander Bias, Ulm University <alexander.bias@uni-ulm.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class sync_task extends \core\task\scheduled_task {
