@@ -18,13 +18,16 @@
  * Auth plugin "LDAP SyncPlus" - CLI Script
  *
  * @package    auth_ldap_syncplus
- * @copyright  2014 Alexander Bias, University of Ulm <alexander.bias@uni-ulm.de>
+ * @copyright  2014 Alexander Bias, Ulm University <alexander.bias@uni-ulm.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 define('CLI_SCRIPT', true);
 
-require(dirname(dirname(dirname(dirname(__FILE__)))).'/config.php'); // global moodle config file.
+// @codingStandardsIgnoreFile
+// Let codechecker ignore this file. This code mostly re-used from auth_ldap and the problems are already there and not made by us.
+
+require(__DIR__.'/../../../config.php'); // global moodle config file.
 require_once($CFG->dirroot.'/course/lib.php');
 require_once($CFG->libdir.'/clilib.php');
 
