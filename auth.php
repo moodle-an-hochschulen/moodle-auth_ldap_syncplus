@@ -666,6 +666,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         set_config('ntlmsso_remoteuserformat', trim($config->ntlmsso_remoteuserformat), 'auth/ldap');
         set_config('custom_filter', $config->custom_filter, $this->pluginconfig);
         set_config('custom_filter_enabled', $config->custom_filter_enabled, $this->pluginconfig);
+
         return true;
     }
 
@@ -681,9 +682,9 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         $authplugin = get_auth_plugin('ldap_syncplus');
 
         // If $CFG->authloginviaemail or $authplugin->config->custom_filter_enabled is not set,
-        // users don't want to login by mail, call parent hook and return
+        // users don't want to login by mail, call parent hook and return.
         if ($CFG->authloginviaemail != 1 || !$authplugin->config->custom_filter_enabled) {
-            parent::loginpage_hook(); // Call parent function to retain its functionality
+            parent::loginpage_hook(); // Call parent function to retain its functionality.
             return;
         }
 
@@ -696,7 +697,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             return;
         }
 
-        // Clean username parameter to make sure that its an email adress or an UPN
+        // Clean username parameter to make sure that its an email adress or an UPN.
         $email = clean_param($frm->username, PARAM_EMAIL);
 
         // or a valid username
@@ -705,15 +706,12 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         // We should ignore the next sections when we want to use a custom LDAP filter,
         // because we should allow multiple email-addresses (aliases) or local UPN-Parts
         if (!$authplugin->config->custom_filter_enabled) {
-            // If we don't have an email adress, there's nothing to do, call parent hook and return
+
+            // If we don't have an email adress, there's nothing to do, call parent hook and return.
             if ($email == '' || strpos($email, '@') == false) {
-                parent::loginpage_hook(); // Call parent function to retain its functionality
+                parent::loginpage_hook(); // Call parent function to retain its functionality.
                 return;
             }
-
-            // Prepare a LDAP-filter with the configured email-attribute
-            $filter = '(&('.$authplugin->config->field_map_email.'='.ldap_filter_addslashes($email).')'.
-                $authplugin->config->objectclass.')';
 
             // If there is an existing useraccount with this email adress as email adress (then a Moodle account already exists and
             // the standard mechanism of $CFG->authloginviaemail will kick in automatically) or if there is an existing useraccount
@@ -721,7 +719,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             // return.
             if ($DB->count_records_select('user', '(username = :p1 OR email = :p2) AND deleted = 0',
                                             array('p1' => $email, 'p2' => $email)) > 0) {
-                parent::loginpage_hook(); // Call parent function to retain its functionality
+                parent::loginpage_hook(); // Call parent function to retain its functionality.
                 return;
             }
 
@@ -731,6 +729,10 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 parent::loginpage_hook(); // Call parent function to retain its functionality.
                 return;
             }
+
+            $filter = '(&('.$authplugin->config->field_map_email.'='.ldap_filter_addslashes($email).')'.
+                    $authplugin->config->objectclass.')';
+
         } else {
                 $filter = $authplugin->config->custom_filter;
                 $filter_in = array("%u","%e");
