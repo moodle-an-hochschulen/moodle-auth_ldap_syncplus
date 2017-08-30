@@ -743,14 +743,14 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             }
 
             // If there is an error in the LDAP result,
-            // or the user was not found: continue with next context
+            // or the user was not found: continue with next context.
             if (!$ldapresult || ldap_count_entries($ldapconnection, $ldapresult) == 0)  {
                 continue;
             }
 
-            // If there is not exactly one matching user, we can't continue, call parent hook and return
+            // If there is not exactly one matching user, we can't continue, call parent hook and return.
             if (ldap_count_entries($ldapconnection, $ldapresult) != 1) {
-                parent::loginpage_hook(); // Call parent function to retain its functionality
+                parent::loginpage_hook(); // Call parent function to retain its functionality.
                 return;
             }
 
