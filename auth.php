@@ -683,9 +683,10 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
         // If $CFG->authloginviaemail or $authplugin->config->custom_filter_enabled is not set,
         // users don't want to login by mail, call parent hook and return.
-        if ($CFG->authloginviaemail != 1 || !$authplugin->config->custom_filter_enabled) {
-            parent::loginpage_hook(); // Call parent function to retain its functionality.
-            return;
+        if ($CFG->authloginviaemail != 1) {
+            if ($authplugin->config->custom_filter_enabled != 1) {
+                parent::loginpage_hook(); // Call parent function to retain its functionality.
+                return;
         }
 
         // Get submitted form data.
@@ -705,7 +706,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
         // We should ignore the next sections when we want to use a custom LDAP filter,
         // because we should allow multiple email-addresses (aliases) or local UPN-Parts
-        if (!$authplugin->config->custom_filter_enabled) {
+        if ($authplugin->config->custom_filter_enabled != 1) {
 
             // If we don't have an email adress, there's nothing to do, call parent hook and return.
             if ($email == '' || strpos($email, '@') == false) {
