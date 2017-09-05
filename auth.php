@@ -687,6 +687,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             if ($authplugin->config->custom_filter_enabled != 1) {
                 parent::loginpage_hook(); // Call parent function to retain its functionality.
                 return;
+            }
         }
 
         // Get submitted form data.
