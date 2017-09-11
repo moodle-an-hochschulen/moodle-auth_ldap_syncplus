@@ -32,8 +32,8 @@ global $CFG;
 require_once($CFG->libdir.'/authlib.php');
 require_once($CFG->libdir.'/ldaplib.php');
 require_once($CFG->dirroot.'/user/lib.php');
-require_once(dirname(dirname(__FILE__)).'/ldap/auth.php');
-require_once(dirname(__FILE__).'/locallib.php');
+require_once(__DIR__.'/../ldap/auth.php');
+require_once(__DIR__.'/locallib.php');
 
 class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
