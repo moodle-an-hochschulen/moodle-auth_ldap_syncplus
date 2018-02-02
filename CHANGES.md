@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2018-02-02 - Adopt code changes in Moodle 3.3 core auth_ldap: Sync user profile fields
 * 2018-02-02 - Adopt code changes in Moodle 3.3 core auth_ldap: Convert auth plugins to use settings.php. Please double-check your plugin settings after upgrading to this version.
 * 2017-12-12 - Prepare compatibility for Moodle 3.3, no functionality change.
 * 2017-12-05 - Added Workaround to travis.yml for fixing Behat tests with TravisCI.
