@@ -15,18 +15,29 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Auth plugin "LDAP SyncPlus" - Version file
+ * Auth plugin "LDAP SyncPlus" - Upgrade script
  *
  * @package    auth_ldap_syncplus
  * @copyright  2014 Alexander Bias, Ulm University <alexander.bias@uni-ulm.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+defined('MOODLE_INTERNAL') || die;
 
-$plugin->component = 'auth_ldap_syncplus';
-$plugin->version = 2018020200;
-$plugin->release = 'v3.2-r4';
-$plugin->requires = 2017051500;
-$plugin->maturity = MATURITY_STABLE;
-$plugin->dependencies = array('auth_ldap' => 2017051500);
+/**
+ * Function to upgrade auth_ldap_syncplus.
+ * @param int $oldversion the version we are upgrading from
+ * @return bool result
+ */
+function xmldb_auth_ldap_syncplus_upgrade($oldversion) {
+    global $DB;
+
+    if ($oldversion < 2018020200) {
+        // Convert info in config plugins from auth/ldap_syncplus to auth_ldap_syncplus.
+        upgrade_fix_config_auth_plugin_names('ldap_syncplus');
+        upgrade_fix_config_auth_plugin_defaults('ldap_syncplus');
+        upgrade_plugin_savepoint(true, 2018020200, 'auth', 'ldap_syncplus');
+    }
+
+    return true;
+}
