@@ -4,7 +4,7 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
-### Unreleased
+### v3.3-r1
 
 * 2018-02-02 - Adopt code changes in Moodle 3.3 core auth_ldap: Sync user profile fields
 * 2018-02-02 - Adopt code changes in Moodle 3.3 core auth_ldap: Convert auth plugins to use settings.php. Please double-check your plugin settings after upgrading to this version.
