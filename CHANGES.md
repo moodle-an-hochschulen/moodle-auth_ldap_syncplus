@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2018-02-06 - Check compatibility for Moodle 3.4, no functionality change.
+
 ### v3.3-r1
 
 * 2018-02-02 - Adopt code changes in Moodle 3.3 core auth_ldap: Sync user profile fields
