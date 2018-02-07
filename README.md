@@ -66,12 +66,12 @@ With the setting "Add new users" (Default: yes), you can prevent the synchroniza
 After configuring the LDAP server (Sync Plus) authentication method, you have to activate the plugin on Site administration -> Plugins -> Authentication -> Manage authentication so that users can be authenticated with this authentication method. Afterwards, you can deactivate the Moodle core LDAP authentication method as it is not needed anymore actively.
 
 
-Configuring LDAP User account syncronisation
---------------------------------------------
+Configuring LDAP User account synchronisation
+---------------------------------------------
 
 To leverage the additional LDAP synchronization features of auth_ldap_syncplus, you have to disable the scheduled task of the Moodle core auth_ldap plugin and activate and configure the scheduled task of auth_ldap_syncplus. This is done on Site administration -> Server -> Scheduled tasks.
 
-If you don't know how to setup LDAP User account syncronisation at all, see https://docs.moodle.org/en/LDAP_authentication#Enabling_the_LDAP_users_sync_job.
+If you don't know how to setup LDAP User account synchronisation at all, see https://docs.moodle.org/en/LDAP_authentication#Enabling_the_LDAP_users_sync_job.
 
 
 Configuring LDAP User role synchronisation
