@@ -27,7 +27,8 @@ defined('MOODLE_INTERNAL') || die;
 if ($ADMIN->fulltree) {
 
     if (!function_exists('ldap_connect')) {
-        $settings->add(new admin_setting_heading('auth_ldap_syncplus_noextension', '', get_string('auth_ldap_noextension', 'auth_ldap')));
+        $settings->add(new admin_setting_heading('auth_ldap_syncplus_noextension', '',
+                get_string('auth_ldap_noextension', 'auth_ldap')));
     } else {
 
         // We use a couple of custom admin settings since we need to massage the data before it is inserted into the DB.
@@ -250,11 +251,11 @@ if ($ADMIN->fulltree) {
         foreach ($roles as $role) {
             // Before we can add this setting we need to check a few things.
             // A) It does not exceed 100 characters otherwise it will break the DB as the 'name' field
-            //    in the 'config_plugins' table is a varchar(100).
+            // in the 'config_plugins' table is a varchar(100).
             // B) The setting name does not contain hyphens. If it does then it will fail the check
-            //    in parse_setting_name() and everything will explode. Role short names are validated
-            //    against PARAM_ALPHANUMEXT which is similar to the regex used in parse_setting_name()
-            //    except it also allows hyphens.
+            // in parse_setting_name() and everything will explode. Role short names are validated
+            // against PARAM_ALPHANUMEXT which is similar to the regex used in parse_setting_name()
+            // except it also allows hyphens.
             // Instead of shortening the name and removing/replacing the hyphens we are showing a warning.
             // If we were to manipulate the setting name by removing the hyphens we may get conflicts, eg
             // 'thisisashortname' and 'this-is-a-short-name'. The same applies for shortening the setting name.
