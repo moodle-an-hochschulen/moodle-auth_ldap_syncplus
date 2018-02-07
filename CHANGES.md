@@ -4,7 +4,7 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
-### Unreleased
+### v3.4-r2
 
 * 2018-02-07 - Add forgotten sync_roles task definition
 
