@@ -517,8 +517,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 $ldapresult = ldap_list($ldapconnection, $context, $filter, array($authplugin->config->user_attribute));
             }
 
-            // If there is no LDAP result, continue with next context.
-            if (!$ldapresult) {
+            // If there is no LDAP result or if the user was not found in this context, continue with next context.
+            if (!$ldapresult || ldap_count_entries($ldapconnection, $ldapresult) == 0) {
                 continue;
             }
 

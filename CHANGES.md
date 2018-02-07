@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2018-02-07 - Bugfix: Login via email for first-time LDAP logins did not work if multiple LDAP contexts were configured; Credits to derhelge.
+
 ### v3.4-r2
 
 * 2018-02-07 - Add forgotten sync_roles task definition
