@@ -74,6 +74,14 @@ To leverage the additional LDAP synchronization features of auth_ldap_syncplus, 
 If you don't know how to setup LDAP User account syncronisation at all, see https://docs.moodle.org/en/LDAP_authentication#Enabling_the_LDAP_users_sync_job.
 
 
+Configuring LDAP User role synchronisation
+------------------------------------------
+
+In addition to the LDAP user account synchronisation, there is a LDAP user role synchronisation. LDAP user role synchronisation task in auth_ldap_syncplus does not provide any benefits over the LDAP user role synchronisation in Moodle core auth_ldap yet. However, to keep things in one place and if you want to synchronize LDAP user roles, you should activate and configure the scheduled task of auth_ldap_syncplus instead of auth_ldap. This is done on Site administration -> Server -> Scheduled tasks.
+
+If you don't know about the LDAP user role synchronisation at all, see https://docs.moodle.org/en/LDAP_authentication#Assign_system_roles.
+
+
 Migrating from auth_ldap to auth_ldap_syncplus
 ----------------------------------------------
 

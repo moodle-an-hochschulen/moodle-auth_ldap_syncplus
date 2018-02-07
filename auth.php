@@ -32,6 +32,7 @@ global $CFG;
 require_once($CFG->libdir.'/authlib.php');
 require_once($CFG->libdir.'/ldaplib.php');
 require_once($CFG->dirroot.'/user/lib.php');
+require_once($CFG->dirroot.'/auth/ldap/locallib.php');
 require_once(__DIR__.'/../ldap/auth.php');
 require_once(__DIR__.'/locallib.php');
 
@@ -343,14 +344,6 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             if (!empty($users)) {
                 mtrace(get_string('userentriestoupdate', 'auth_ldap', count($users)));
 
-                $sitecontext = context_system::instance();
-                if (!empty($this->config->creators) and !empty($this->config->memberattribute)
-                  and $roles = get_archetype_roles('coursecreator')) {
-                    $creatorrole = array_shift($roles);      // We can only use one, let's use the first one
-                } else {
-                    $creatorrole = false;
-                }
-
                 $transaction = $DB->start_delegated_transaction();
                 $xcount = 0;
                 $maxxcount = 100;
@@ -365,14 +358,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     mtrace("\t".get_string('auth_dbupdatinguser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)).$skipped);
                     $xcount++;
 
-                    // Update course creators if needed
-                    if ($creatorrole !== false) {
-                        if ($this->iscreator($user->username)) {
-                            role_assign($creatorrole->id, $user->id, $sitecontext->id, $this->roleauth);
-                        } else {
-                            role_unassign($creatorrole->id, $user->id, $sitecontext->id, $this->roleauth);
-                        }
-                    }
+                    // Update system roles, if needed.
+                    $this->sync_roles($user);
                 }
                 $transaction->allow_commit();
                 unset($users); // free mem
@@ -394,14 +381,6 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
             if (!empty($add_users)) {
                 mtrace(get_string('userentriestoadd', 'auth_ldap', count($add_users)));
-
-                $sitecontext = context_system::instance();
-                if (!empty($this->config->creators) and !empty($this->config->memberattribute)
-                  and $roles = get_archetype_roles('coursecreator')) {
-                    $creatorrole = array_shift($roles);      // We can only use one, let's use the first one
-                } else {
-                    $creatorrole = false;
-                }
 
                 $transaction = $DB->start_delegated_transaction();
                 foreach ($add_users as $user) {
@@ -436,14 +415,12 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                         set_user_preference('auth_forcepasswordchange', 1, $id);
                     }
 
-                    // Add course creators if needed
-                    if ($creatorrole !== false and $this->iscreator($user->username)) {
-                        role_assign($creatorrole->id, $id, $sitecontext->id, $this->roleauth);
-                    }
-
                     // Save custom profile fields.
                     $updatekeys = $this->get_profile_keys(true);
                     $this->update_user_record($user->username, $updatekeys, false);
+
+                    // Add roles if needed.
+                    $this->sync_roles($euser);
                 }
                 $transaction->allow_commit();
                 unset($add_users); // free mem

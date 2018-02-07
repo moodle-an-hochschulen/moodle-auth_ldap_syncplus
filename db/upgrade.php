@@ -39,5 +39,20 @@ function xmldb_auth_ldap_syncplus_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2018020200, 'auth', 'ldap_syncplus');
     }
 
+    if ($oldversion < 2018020601) {
+        // The "auth_ldap_syncplus/coursecreators" setting was replaced with "auth_ldap_syncplus/coursecreatorcontext" (created
+        // dynamically from system-assignable roles) - so migrate any existing value to the first new slot.
+        if ($ldapcontext = get_config('auth_ldap_syncplus', 'creators')) {
+            // Get info about the role that the old coursecreators setting would apply.
+            $creatorrole = get_archetype_roles('coursecreator');
+            $creatorrole = array_shift($creatorrole); // We can only use one, let's use the first.
+            // Create new setting.
+            set_config($creatorrole->shortname . 'context', $ldapcontext, 'auth_ldap_syncplus');
+            // Delete old setting.
+            set_config('creators', null, 'auth_ldap_syncplus');
+            upgrade_plugin_savepoint(true, 2018020601, 'auth', 'ldap_syncplus');
+        }
+    }
+
     return true;
 }

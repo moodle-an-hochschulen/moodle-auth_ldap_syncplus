@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2018-02-07 - Adopt code changes in Moodle 3.4 core auth_ldap: Assign arbitrary system roles via LDAP sync.
 * 2018-02-06 - Check compatibility for Moodle 3.4, no functionality change.
 
 ### v3.3-r1
