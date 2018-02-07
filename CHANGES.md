@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2018-02-07 - Add forgotten sync_roles task definition
+
 ### v3.4-r1
 
 * 2018-02-07 - Adopt code changes in Moodle 3.4 core auth_ldap: Assign arbitrary system roles via LDAP sync.
