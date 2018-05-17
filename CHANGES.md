@@ -4,7 +4,7 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
-### Unreleased
+### v3.4-r4
 
 * 2018-05-16 - Implement Privacy API.
 
