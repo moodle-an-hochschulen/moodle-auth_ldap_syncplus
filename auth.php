@@ -72,6 +72,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
     function sync_users($do_updates=true) {
         global $CFG, $DB;
 
+        require_once($CFG->dirroot . '/user/profile/lib.php');
+
         mtrace(get_string('connectingldap', 'auth_ldap'));
         $ldapconnection = $this->ldap_connect();
 
@@ -349,7 +351,9 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 $maxxcount = 100;
 
                 foreach ($users as $user) {
-                    if (!$this->update_user_record($user->username, $updatekeys, true)) {
+                    $userinfo = $this->get_userinfo($user->username);
+                    if (!$this->update_user_record($user->username, $updatekeys, true,
+                            $this->is_user_suspended((object) $userinfo))) {
                         $skipped = ' - '.get_string('skipped');
                     }
                     else {
@@ -416,8 +420,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     }
 
                     // Save custom profile fields.
-                    $updatekeys = $this->get_profile_keys(true);
-                    $this->update_user_record($user->username, $updatekeys, false);
+                    $this->update_user_record($user->username, $this->get_profile_keys(true), false);
 
                     // Add roles if needed.
                     $this->sync_roles($euser);
