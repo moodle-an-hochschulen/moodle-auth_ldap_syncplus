@@ -45,11 +45,10 @@ function update_user_onevent($eventdata) {
             // Do only if user has ldap_syncplus authentication.
             if (isset($user->auth) && $user->auth == 'ldap_syncplus') {
 
-                // Get LDAP Plugin.
-                $authplugin = get_auth_plugin('ldap_syncplus');
-
                 // Update user.
-                $authplugin->update_user_record($user->username);
+                // Actually, we would want to call auth_plugin_base::update_user_record()
+                // which is lighter, but this function is unfortunately protected since Moodle 3.5
+                update_user_record($user->username);
             }
         }
     }
