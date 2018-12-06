@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2018-12-05 - Changed travis.yml due to upstream changes.
+
 ### v3.5-r1
 
 * 2018-06-25 - Bugfix: Creating users and first logins resulted in a fatal error in 3.5 because of a visibility change of update_user_record() in Moodle core.
