@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2019-01-29 - Adopt code changes Moodle 3.5 core auth_ldap (MDL-63887).
 * 2018-12-05 - Changed travis.yml due to upstream changes.
 
 ### v3.5-r1
