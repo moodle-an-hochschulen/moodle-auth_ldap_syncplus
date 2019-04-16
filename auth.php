@@ -455,9 +455,6 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
     public function loginpage_hook() {
         global $CFG, $frm, $DB;
 
-        // Get auth plugin
-        $authplugin = get_auth_plugin('ldap_syncplus');
-
         // If $CFG->authloginviaemail or $authplugin->config->custom_filter_enabled is not set,
         // users don't want to login by mail, call parent hook and return.
         if ($CFG->authloginviaemail != 1) {
