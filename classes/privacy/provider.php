@@ -15,34 +15,33 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Auth plugin "LDAP SyncPlus" - Scheduled tasks
+ * Auth plugin "LDAP SyncPlus" - Privacy provider
  *
  * @package    auth_ldap_syncplus
- * @copyright  2014 Alexander Bias, Ulm University <alexander.bias@uni-ulm.de>
+ * @copyright  2018 Alexander Bias, Ulm University <alexander.bias@uni-ulm.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace auth_ldap_syncplus\privacy;
+
 defined('MOODLE_INTERNAL') || die();
 
-$tasks = array(
-    array(
-        'classname' => 'auth_ldap_syncplus\task\sync_roles',
-        'blocking' => 0,
-        'minute' => '0',
-        'hour' => '0',
-        'day' => '*',
-        'month' => '*',
-        'dayofweek' => '*',
-        'disabled' => 1
-    ),
-    array(
-        'classname' => 'auth_ldap_syncplus\task\sync_task',
-        'blocking' => 0,
-        'minute' => '0',
-        'hour' => '0',
-        'day' => '*',
-        'month' => '*',
-        'dayofweek' => '*',
-        'disabled' => 1
-    )
-);
+/**
+ * Privacy Subsystem implementing null_provider.
+ *
+ * @package    auth_ldap_syncplus
+ * @copyright  2018 Alexander Bias, Ulm University <alexander.bias@uni-ulm.de>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class provider implements \core_privacy\local\metadata\null_provider {
+
+    /**
+     * Get the language string identifier with the component's language
+     * file to explain why this plugin stores no data.
+     *
+     * @return string
+     */
+    public static function get_reason() : string {
+        return 'privacy:metadata';
+    }
+}

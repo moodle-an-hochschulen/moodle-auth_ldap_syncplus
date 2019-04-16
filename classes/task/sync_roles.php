@@ -15,41 +15,49 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Auth plugin "LDAP SyncPlus" - Event handler
+ * Auth plugin "LDAP SyncPlus" - Task definition
  *
  * @package    auth_ldap_syncplus
  * @copyright  2014 Alexander Bias, Ulm University <alexander.bias@uni-ulm.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace auth_ldap_syncplus\task;
+
 defined('MOODLE_INTERNAL') || die;
 
 /**
- * Event handler function.
+ * The auth_ldap_syncplus scheduled task class for LDAP roles sync
  *
- * @param object $eventdata Event data
- * @return void
+ * @package    auth_ldap_syncplus
+ * @copyright  2014 Alexander Bias, Ulm University <alexander.bias@uni-ulm.de>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-function update_user_onevent($eventdata) {
-    global $DB;
+class sync_roles extends \core\task\scheduled_task {
 
-    // Do only if user id is enclosed in $eventdata.
-    if (!empty($eventdata->relateduserid)) {
+    /**
+     * Return localised task name.
+     *
+     * @return string
+     */
+    public function get_name() {
+        return get_string('syncroles', 'auth_ldap_syncplus');
+    }
 
-        // Get user data.
-        $user = $DB->get_record('user', array('id' => $eventdata->relateduserid));
-
-        // Do if user was found.
-        if (!empty($user->username)) {
-
-            // Do only if user has ldap_syncplus authentication.
-            if (isset($user->auth) && $user->auth == 'ldap_syncplus') {
-
-                // Update user.
-                // Actually, we would want to call auth_plugin_base::update_user_record()
-                // which is lighter, but this function is unfortunately protected since Moodle 3.5
-                update_user_record($user->username);
+    /**
+     * Execute scheduled task
+     *
+     * @return boolean
+     */
+    public function execute() {
+        global $DB;
+        if (is_enabled_auth('ldap_syncplus')) {
+            $auth = get_auth_plugin('ldap_syncplus');
+            $users = $DB->get_records('user', array('auth' => 'ldap_syncplus'));
+            foreach ($users as $user) {
+                $auth->sync_roles($user);
             }
         }
     }
+
 }

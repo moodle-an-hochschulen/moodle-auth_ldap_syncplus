@@ -9,7 +9,7 @@ Moodle authentication plugin which provides all functionality of auth_ldap, but 
 Requirements
 ------------
 
-This plugin requires Moodle 3.2+
+This plugin requires Moodle 3.6+
 
 
 Motivation for this plugin
@@ -66,12 +66,20 @@ With the setting "Add new users" (Default: yes), you can prevent the synchroniza
 After configuring the LDAP server (Sync Plus) authentication method, you have to activate the plugin on Site administration -> Plugins -> Authentication -> Manage authentication so that users can be authenticated with this authentication method. Afterwards, you can deactivate the Moodle core LDAP authentication method as it is not needed anymore actively.
 
 
-Configuring LDAP User account syncronisation
---------------------------------------------
+Configuring LDAP User account synchronisation
+---------------------------------------------
 
 To leverage the additional LDAP synchronization features of auth_ldap_syncplus, you have to disable the scheduled task of the Moodle core auth_ldap plugin and activate and configure the scheduled task of auth_ldap_syncplus. This is done on Site administration -> Server -> Scheduled tasks.
 
-If you don't know how to setup LDAP User account syncronisation at all, see https://docs.moodle.org/en/LDAP_authentication#Enabling_the_LDAP_users_sync_job.
+If you don't know how to setup LDAP User account synchronisation at all, see https://docs.moodle.org/en/LDAP_authentication#Enabling_the_LDAP_users_sync_job.
+
+
+Configuring LDAP User role synchronisation
+------------------------------------------
+
+In addition to the LDAP user account synchronisation, there is a LDAP user role synchronisation. LDAP user role synchronisation task in auth_ldap_syncplus does not provide any benefits over the LDAP user role synchronisation in Moodle core auth_ldap yet. However, to keep things in one place and if you want to synchronize LDAP user roles, you should activate and configure the scheduled task of auth_ldap_syncplus instead of auth_ldap. This is done on Site administration -> Server -> Scheduled tasks.
+
+If you don't know about the LDAP user role synchronisation at all, see https://docs.moodle.org/en/LDAP_authentication#Assign_system_roles.
 
 
 Migrating from auth_ldap to auth_ldap_syncplus
@@ -110,8 +118,8 @@ Theme support
 -------------
 
 This plugin acts behind the scenes, therefore it should work with all Moodle themes.
-It has been developed on and tested with Moodle Core's Clean and Boost themes.
-
+It has been developed on and tested only with Moodle Core's Boost theme.
+While this plugin should also work with Moodle Core's legacy Clean theme or third party themes, we can't support any other theme than Boost.
 
 Plugin repositories
 -------------------
@@ -184,9 +192,7 @@ Please vote for this ticket if you want to have this realized.
 PHP7 Support
 ------------
 
-Since Moodle 3.0, Moodle core basically supports PHP7.
-Please note that PHP7 support is on our roadmap for this plugin, but it has not yet been thoroughly tested for PHP7 support and we are still running it in production on PHP5.
-If you encounter any success or failure with this plugin and PHP7, please let us know.
+Since Moodle 3.4 core, PHP7 is mandatory. We are developing and testing this plugin for PHP7 only.
 
 
 Copyright

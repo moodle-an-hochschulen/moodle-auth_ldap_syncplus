@@ -32,8 +32,9 @@ global $CFG;
 require_once($CFG->libdir.'/authlib.php');
 require_once($CFG->libdir.'/ldaplib.php');
 require_once($CFG->dirroot.'/user/lib.php');
-require_once(dirname(dirname(__FILE__)).'/ldap/auth.php');
-require_once(dirname(__FILE__).'/locallib.php');
+require_once($CFG->dirroot.'/auth/ldap/locallib.php');
+require_once(__DIR__.'/../ldap/auth.php');
+require_once(__DIR__.'/locallib.php');
 
 class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
@@ -71,6 +72,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
     function sync_users($do_updates=true) {
         global $CFG, $DB;
 
+        require_once($CFG->dirroot . '/user/profile/lib.php');
+
         mtrace(get_string('connectingldap', 'auth_ldap'));
         $ldapconnection = $this->ldap_connect();
 
@@ -99,8 +102,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             array_push($contexts, $this->config->create_context);
         }
 
-        $ldap_pagedresults = ldap_paged_results_supported($this->config->ldap_version, $ldapconnection);
-        $ldap_cookie = '';
+        $ldappagedresults = ldap_paged_results_supported($this->config->ldap_version, $ldapconnection);
+        $ldapcookie = '';
         foreach ($contexts as $context) {
             $context = trim($context);
             if (empty($context)) {
@@ -108,23 +111,28 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             }
 
             do {
-                if ($ldap_pagedresults) {
-                    ldap_control_paged_result($ldapconnection, $this->config->pagesize, true, $ldap_cookie);
+                if ($ldappagedresults) {
+                    ldap_control_paged_result($ldapconnection, $this->config->pagesize, true, $ldapcookie);
                 }
                 if ($this->config->search_sub) {
                     // Use ldap_search to find first user from subtree.
-                    $ldap_result = ldap_search($ldapconnection, $context, $filter, array($this->config->user_attribute));
+                    $ldapresult = ldap_search($ldapconnection, $context, $filter, array($this->config->user_attribute));
                 } else {
                     // Search only in this context.
-                    $ldap_result = ldap_list($ldapconnection, $context, $filter, array($this->config->user_attribute));
+                    $ldapresult = ldap_list($ldapconnection, $context, $filter, array($this->config->user_attribute));
                 }
-                if(!$ldap_result) {
+                if(!$ldapresult) {
                     continue;
                 }
-                if ($ldap_pagedresults) {
-                    ldap_control_paged_result_response($ldapconnection, $ldap_result, $ldap_cookie);
+                if ($ldappagedresults) {
+                    $pagedresp = ldap_control_paged_result_response($ldapconnection, $ldapresult, $ldapcookie);
+                    // Function ldap_control_paged_result_response() does not overwrite $ldapcookie if it fails, by
+                    // setting this to null we avoid an infinite loop.
+                    if ($pagedresp === false) {
+                        $ldapcookie = null;
+                    }
                 }
-                if ($entry = @ldap_first_entry($ldapconnection, $ldap_result)) {
+                if ($entry = @ldap_first_entry($ldapconnection, $ldapresult)) {
                     do {
                         $value = ldap_get_values_len($ldapconnection, $entry, $this->config->user_attribute);
                         $value = core_text::convert($value[0], $this->config->ldapencoding, 'utf-8');
@@ -132,13 +140,13 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                         $this->ldap_bulk_insert($value);
                     } while ($entry = ldap_next_entry($ldapconnection, $entry));
                 }
-                unset($ldap_result); // Free mem.
-            } while ($ldap_pagedresults && $ldap_cookie !== null && $ldap_cookie != '');
+                unset($ldapresult); // Free mem.
+            } while ($ldappagedresults && $ldapcookie !== null && $ldapcookie != '');
         }
 
         // If LDAP paged results were used, the current connection must be completely
         // closed and a new one created, to work without paged results from here on.
-        if ($ldap_pagedresults) {
+        if ($ldappagedresults) {
             $this->ldap_close(true);
             $ldapconnection = $this->ldap_connect();
         }
@@ -149,7 +157,9 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         $count = $DB->count_records_sql('SELECT COUNT(username) AS count, 1 FROM {tmp_extuser}');
         if ($count < 1) {
             mtrace(get_string('didntgetusersfromldap', 'auth_ldap'));
-            exit;
+            $dbman->drop_table($table);
+            $this->ldap_close();
+            return false;
         } else {
             mtrace(get_string('gotcountrecordsfromldap', 'auth_ldap', $count));
         }
@@ -331,23 +341,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         /// User Updates - time-consuming (optional)
         if ($do_updates) {
             // Narrow down what fields we need to update
-            $all_keys = array_keys(get_object_vars($this->config));
-            $updatekeys = array();
-            foreach ($all_keys as $key) {
-                if (preg_match('/^field_updatelocal_(.+)$/', $key, $match)) {
-                    // If we have a field to update it from
-                    // and it must be updated 'onlogin' we
-                    // update it on cron
-                    if (!empty($this->config->{'field_map_'.$match[1]})
-                         and $this->config->{$match[0]} === 'onlogin') {
-                        array_push($updatekeys, $match[1]); // the actual key name
-                    }
-                }
-            }
-            if ($this->config->suspended_attribute && $this->config->sync_suspended) {
-                $updatekeys[] = 'suspended';
-            }
-            unset($all_keys); unset($key);
+            $updatekeys = $this->get_profile_keys();
         } else {
             mtrace(get_string('noupdatestobedone', 'auth_ldap'));
         }
@@ -359,20 +353,14 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             if (!empty($users)) {
                 mtrace(get_string('userentriestoupdate', 'auth_ldap', count($users)));
 
-                $sitecontext = context_system::instance();
-                if (!empty($this->config->creators) and !empty($this->config->memberattribute)
-                  and $roles = get_archetype_roles('coursecreator')) {
-                    $creatorrole = array_shift($roles);      // We can only use one, let's use the first one
-                } else {
-                    $creatorrole = false;
-                }
-
                 $transaction = $DB->start_delegated_transaction();
                 $xcount = 0;
                 $maxxcount = 100;
 
                 foreach ($users as $user) {
-                    if (!$this->update_user_record($user->username, $updatekeys, true)) {
+                    $userinfo = $this->get_userinfo($user->username);
+                    if (!$this->update_user_record($user->username, $updatekeys, true,
+                            $this->is_user_suspended((object) $userinfo))) {
                         $skipped = ' - '.get_string('skipped');
                     }
                     else {
@@ -381,14 +369,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     mtrace("\t".get_string('auth_dbupdatinguser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)).$skipped);
                     $xcount++;
 
-                    // Update course creators if needed
-                    if ($creatorrole !== false) {
-                        if ($this->iscreator($user->username)) {
-                            role_assign($creatorrole->id, $user->id, $sitecontext->id, $this->roleauth);
-                        } else {
-                            role_unassign($creatorrole->id, $user->id, $sitecontext->id, $this->roleauth);
-                        }
-                    }
+                    // Update system roles, if needed.
+                    $this->sync_roles($user);
                 }
                 $transaction->allow_commit();
                 unset($users); // free mem
@@ -410,14 +392,6 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
             if (!empty($add_users)) {
                 mtrace(get_string('userentriestoadd', 'auth_ldap', count($add_users)));
-
-                $sitecontext = context_system::instance();
-                if (!empty($this->config->creators) and !empty($this->config->memberattribute)
-                  and $roles = get_archetype_roles('coursecreator')) {
-                    $creatorrole = array_shift($roles);      // We can only use one, let's use the first one
-                } else {
-                    $creatorrole = false;
-                }
 
                 $transaction = $DB->start_delegated_transaction();
                 foreach ($add_users as $user) {
@@ -452,11 +426,11 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                         set_user_preference('auth_forcepasswordchange', 1, $id);
                     }
 
-                    // Add course creators if needed
-                    if ($creatorrole !== false and $this->iscreator($user->username)) {
-                        role_assign($creatorrole->id, $id, $sitecontext->id, $this->roleauth);
-                    }
+                    // Save custom profile fields.
+                    $this->update_user_record($user->username, $this->get_profile_keys(true), false);
 
+                    // Add roles if needed.
+                    $this->sync_roles($euser);
                 }
                 $transaction->allow_commit();
                 unset($add_users); // free mem
@@ -469,203 +443,6 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
         $dbman->drop_table($table);
         $this->ldap_close();
-
-        return true;
-    }
-
-
-    /**
-     * Prints a form for configuring this authentication plugin.
-     *
-     * This function is called from admin/auth.php, and outputs a full page with
-     * a form for configuring this plugin.
-     *
-     * @param array $page An object containing all the data for this page.
-     */
-    function config_form($config, $err, $user_fields) {
-        global $CFG, $OUTPUT;
-
-        if (!function_exists('ldap_connect')) { // Is php-ldap really there?
-            echo $OUTPUT->notification(get_string('auth_ldap_noextension', 'auth_ldap'));
-            return;
-        }
-
-        include($CFG->dirroot.'/auth/ldap_syncplus/config.html');
-    }
-
-    /**
-     * Processes and stores configuration data for this authentication plugin.
-     */
-    function process_config($config) {
-        // Set to defaults if undefined
-        if (!isset($config->host_url)) {
-             $config->host_url = '';
-        }
-        if (!isset($config->start_tls)) {
-             $config->start_tls = false;
-        }
-        if (empty($config->ldapencoding)) {
-         $config->ldapencoding = 'utf-8';
-        }
-        if (!isset($config->pagesize)) {
-            $config->pagesize = LDAP_DEFAULT_PAGESIZE;
-        }
-        if (!isset($config->contexts)) {
-             $config->contexts = '';
-        }
-        if (!isset($config->user_type)) {
-             $config->user_type = 'default';
-        }
-        if (!isset($config->user_attribute)) {
-             $config->user_attribute = '';
-        }
-        if (!isset($config->suspended_attribute)) {
-            $config->suspended_attribute = '';
-        }
-        if (!isset($config->sync_suspended)) {
-            $config->sync_suspended = false;
-        }
-        if (!isset($config->search_sub)) {
-             $config->search_sub = '';
-        }
-        if (!isset($config->opt_deref)) {
-             $config->opt_deref = LDAP_DEREF_NEVER;
-        }
-        if (!isset($config->preventpassindb)) {
-             $config->preventpassindb = 0;
-        }
-        if (!isset($config->bind_dn)) {
-            $config->bind_dn = '';
-        }
-        if (!isset($config->bind_pw)) {
-            $config->bind_pw = '';
-        }
-        if (!isset($config->ldap_version)) {
-            $config->ldap_version = '3';
-        }
-        if (!isset($config->objectclass)) {
-            $config->objectclass = '';
-        }
-        if (!isset($config->memberattribute)) {
-            $config->memberattribute = '';
-        }
-        if (!isset($config->memberattribute_isdn)) {
-            $config->memberattribute_isdn = '';
-        }
-        if (!isset($config->creators)) {
-            $config->creators = '';
-        }
-        if (!isset($config->create_context)) {
-            $config->create_context = '';
-        }
-        if (!isset($config->expiration)) {
-            $config->expiration = '';
-        }
-        if (!isset($config->expiration_warning)) {
-            $config->expiration_warning = '10';
-        }
-        if (!isset($config->expireattr)) {
-            $config->expireattr = '';
-        }
-        if (!isset($config->gracelogins)) {
-            $config->gracelogins = '';
-        }
-        if (!isset($config->graceattr)) {
-            $config->graceattr = '';
-        }
-        if (!isset($config->auth_user_create)) {
-            $config->auth_user_create = '';
-        }
-        if (!isset($config->forcechangepassword)) {
-            $config->forcechangepassword = 0;
-        }
-        if (!isset($config->stdchangepassword)) {
-            $config->stdchangepassword = 0;
-        }
-        if (!isset($config->passtype)) {
-            $config->passtype = 'plaintext';
-        }
-        if (!isset($config->changepasswordurl)) {
-            $config->changepasswordurl = '';
-        }
-        if (!isset($config->removeuser)) {
-            $config->removeuser = AUTH_REMOVEUSER_KEEP;
-        }
-        if (!isset($config->removeuser_graceperiod)) {
-            $config->removeuser_graceperiod = '10';
-        }
-        if (!isset($config->sync_script_createuser_enabled)) {
-            $config->sync_script_createuser_enabled = 1;
-        }
-        if (!isset($config->ntlmsso_enabled)) {
-            $config->ntlmsso_enabled = 0;
-        }
-        if (!isset($config->ntlmsso_subnet)) {
-            $config->ntlmsso_subnet = '';
-        }
-        if (!isset($config->ntlmsso_ie_fastpath)) {
-            $config->ntlmsso_ie_fastpath = 0;
-        }
-        if (!isset($config->ntlmsso_type)) {
-            $config->ntlmsso_type = 'ntlm';
-        }
-        if (!isset($config->ntlmsso_remoteuserformat)) {
-            $config->ntlmsso_remoteuserformat = '';
-        }
-        if (!isset($config->custom_filter)) {
-            $config->custom_filter = '';
-        }
-        if (!isset($config->custom_filter_enabled)) {
-            $config->custom_filter_enabled = false;
-        }
-
-        // Try to remove duplicates before storing the contexts (to avoid problems in sync_users()).
-        $config->contexts = explode(';', $config->contexts);
-        $config->contexts = array_map(create_function('$x', 'return core_text::strtolower(trim($x));'),
-                                      $config->contexts);
-        $config->contexts = implode(';', array_unique($config->contexts));
-
-        // Save settings
-        set_config('host_url', trim($config->host_url), $this->pluginconfig);
-        set_config('start_tls', $config->start_tls, $this->pluginconfig);
-        set_config('ldapencoding', trim($config->ldapencoding), $this->pluginconfig);
-        set_config('pagesize', (int)trim($config->pagesize), $this->pluginconfig);
-        set_config('contexts', $config->contexts, $this->pluginconfig);
-        set_config('user_type', core_text::strtolower(trim($config->user_type)), $this->pluginconfig);
-        set_config('user_attribute', core_text::strtolower(trim($config->user_attribute)), $this->pluginconfig);
-        set_config('suspended_attribute', core_text::strtolower(trim($config->suspended_attribute)), $this->pluginconfig);
-        set_config('sync_suspended', $config->sync_suspended, $this->pluginconfig);
-        set_config('search_sub', $config->search_sub, $this->pluginconfig);
-        set_config('opt_deref', $config->opt_deref, $this->pluginconfig);
-        set_config('preventpassindb', $config->preventpassindb, $this->pluginconfig);
-        set_config('bind_dn', trim($config->bind_dn), $this->pluginconfig);
-        set_config('bind_pw', $config->bind_pw, $this->pluginconfig);
-        set_config('ldap_version', $config->ldap_version, $this->pluginconfig);
-        set_config('objectclass', trim($config->objectclass), $this->pluginconfig);
-        set_config('memberattribute', core_text::strtolower(trim($config->memberattribute)), $this->pluginconfig);
-        set_config('memberattribute_isdn', $config->memberattribute_isdn, $this->pluginconfig);
-        set_config('creators', trim($config->creators), $this->pluginconfig);
-        set_config('create_context', trim($config->create_context), $this->pluginconfig);
-        set_config('expiration', $config->expiration, $this->pluginconfig);
-        set_config('expiration_warning', trim($config->expiration_warning), $this->pluginconfig);
-        set_config('expireattr', core_text::strtolower(trim($config->expireattr)), $this->pluginconfig);
-        set_config('gracelogins', $config->gracelogins, $this->pluginconfig);
-        set_config('graceattr', core_text::strtolower(trim($config->graceattr)), $this->pluginconfig);
-        set_config('auth_user_create', $config->auth_user_create, $this->pluginconfig);
-        set_config('forcechangepassword', $config->forcechangepassword, $this->pluginconfig);
-        set_config('stdchangepassword', $config->stdchangepassword, $this->pluginconfig);
-        set_config('passtype', $config->passtype, $this->pluginconfig);
-        set_config('changepasswordurl', trim($config->changepasswordurl), $this->pluginconfig);
-        set_config('removeuser', $config->removeuser, $this->pluginconfig);
-        set_config('removeuser_graceperiod', $config->removeuser_graceperiod, $this->pluginconfig);
-        set_config('sync_script_createuser_enabled', $config->sync_script_createuser_enabled, $this->pluginconfig);
-        set_config('ntlmsso_enabled', (int)$config->ntlmsso_enabled, $this->pluginconfig);
-        set_config('ntlmsso_subnet', trim($config->ntlmsso_subnet), $this->pluginconfig);
-        set_config('ntlmsso_ie_fastpath', (int)$config->ntlmsso_ie_fastpath, $this->pluginconfig);
-        set_config('ntlmsso_type', $config->ntlmsso_type, 'auth/ldap');
-        set_config('ntlmsso_remoteuserformat', trim($config->ntlmsso_remoteuserformat), 'auth/ldap');
-        set_config('custom_filter', $config->custom_filter, $this->pluginconfig);
-        set_config('custom_filter_enabled', $config->custom_filter_enabled, $this->pluginconfig);
 
         return true;
     }
@@ -768,8 +545,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 $ldapresult = ldap_list($ldapconnection, $context, $filter, array($authplugin->config->user_attribute));
             }
 
-            // If there is no LDAP result, continue with next context.
-            if (!$ldapresult) {
+            // If there is no LDAP result or if the user was not found in this context, continue with next context.
+            if (!$ldapresult || ldap_count_entries($ldapconnection, $ldapresult) == 0) {
                 continue;
             }
 

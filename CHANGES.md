@@ -4,6 +4,45 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### v3.6-r1
+
+* 2019-01-29 - Check compatibility for Moodle 3.6, no functionality change.
+
+### v3.5-r2
+
+* 2019-01-29 - Adopt code changes Moodle 3.5 core auth_ldap (MDL-63887).
+* 2018-12-05 - Changed travis.yml due to upstream changes.
+
+### v3.5-r1
+
+* 2018-06-25 - Bugfix: Creating users and first logins resulted in a fatal error in 3.5 because of a visibility change of update_user_record() in Moodle core.
+* 2018-06-25 - Check compatibility for Moodle 3.5, no functionality change.
+
+### v3.4-r4
+
+* 2018-05-16 - Implement Privacy API.
+
+### v3.4-r3
+
+* 2018-02-07 - Bugfix: Login via email for first-time LDAP logins did not work if multiple LDAP contexts were configured; Credits to derhelge.
+
+### v3.4-r2
+
+* 2018-02-07 - Add forgotten sync_roles task definition
+
+### v3.4-r1
+
+* 2018-02-07 - Adopt code changes in Moodle 3.4 core auth_ldap: Assign arbitrary system roles via LDAP sync.
+* 2018-02-06 - Check compatibility for Moodle 3.4, no functionality change.
+
+### v3.3-r1
+
+* 2018-02-02 - Adopt code changes in Moodle 3.3 core auth_ldap: Sync user profile fields
+* 2018-02-02 - Adopt code changes in Moodle 3.3 core auth_ldap: Convert auth plugins to use settings.php. Please double-check your plugin settings after upgrading to this version.
+* 2017-12-12 - Prepare compatibility for Moodle 3.3, no functionality change.
+* 2017-12-05 - Added Workaround to travis.yml for fixing Behat tests with TravisCI.
+* 2017-11-08 - Updated travis.yml to use newer node version for fixing TravisCI error.
+
 ### v3.2-r4
 
 * 2017-05-29 - Add Travis CI support
