@@ -155,6 +155,16 @@ if ($ADMIN->fulltree) {
                 get_string('auth_ldap_objectclass_key', 'auth_ldap'),
                 get_string('auth_ldap_objectclass', 'auth_ldap'), '', PARAM_RAW_TRIMMED));
 
+        // Custom Filter.
+        $settings->add(new admin_setting_configtext('auth_ldap_syncplus/custom_filter',
+                get_string('custom_filter_key', 'auth_ldap_syncplus'),
+                get_string('custom_filter', 'auth_ldap_syncplus'), PARAM_RAW_TRIMMED));
+
+       // Enable Custom Filter.
+        $settings->add(new admin_setting_configselect('auth_ldap_syncplus/custom_filter_enabled',
+                get_string('custom_filter_enabled_key', 'auth_ldap_syncplus'),
+                get_string('custom_filter_enabled', 'auth_ldap_syncplus'), 0, $yesno));
+
         // Force Password change Header.
         $settings->add(new admin_setting_heading('auth_ldap_syncplus/ldapforcepasswordchange',
                 new lang_string('forcechangepassword', 'auth'), ''));
