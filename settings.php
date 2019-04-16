@@ -160,7 +160,7 @@ if ($ADMIN->fulltree) {
                 get_string('custom_filter_key', 'auth_ldap_syncplus'),
                 get_string('custom_filter', 'auth_ldap_syncplus'), PARAM_RAW_TRIMMED));
 
-       // Enable Custom Filter.
+        // Enable Custom Filter.
         $settings->add(new admin_setting_configselect('auth_ldap_syncplus/custom_filter_enabled',
                 get_string('custom_filter_enabled_key', 'auth_ldap_syncplus'),
                 get_string('custom_filter_enabled', 'auth_ldap_syncplus'), 0, $yesno));
