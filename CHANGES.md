@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2019-08-15 - Make codechecker happy.
 * 2019-08-15 - Prepare compatibility for Moodle 3.7.
 
 ### v3.6-r1

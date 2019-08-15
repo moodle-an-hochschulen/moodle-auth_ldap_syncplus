@@ -36,6 +36,13 @@ require_once($CFG->dirroot.'/auth/ldap/locallib.php');
 require_once(__DIR__.'/../ldap/auth.php');
 require_once(__DIR__.'/locallib.php');
 
+/**
+ * Auth plugin "LDAP SyncPlus" - Auth class
+ *
+ * @package    auth_ldap_syncplus
+ * @copyright  2014 Alexander Bias, Ulm University <alexander.bias@uni-ulm.de>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
     /**
@@ -79,7 +86,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
         $dbman = $DB->get_manager();
 
-        /// Define table user to be created
+        // Define table user to be created.
         $table = new xmldb_table('tmp_extuser');
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
         $table->add_field('username', XMLDB_TYPE_CHAR, '100', null, XMLDB_NOTNULL, null, null);
@@ -90,10 +97,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         mtrace(get_string('creatingtemptable', 'auth_ldap', 'tmp_extuser'));
         $dbman->create_temp_table($table);
 
-        ////
-        //// get user's list from ldap to sql in a scalable fashion
-        ////
-        // prepare some data we'll need
+        // Get user's list from ldap to sql in a scalable fashion.
+        // Prepare some data we'll need.
         $filter = '(&('.$this->config->user_attribute.'=*)'.$this->config->objectclass.')';
 
         $contexts = explode(';', $this->config->contexts);
@@ -151,9 +156,9 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             $ldapconnection = $this->ldap_connect();
         }
 
-        /// preserve our user database
-        /// if the temp table is empty, it probably means that something went wrong, exit
-        /// so as to avoid mass deletion of users; which is hard to undo
+        // Preserve our user database.
+        // If the temp table is empty, it probably means that something went wrong, exit
+        // so as to avoid mass deletion of users; which is hard to undo.
         $count = $DB->count_records_sql('SELECT COUNT(username) AS count, 1 FROM {tmp_extuser}');
         if ($count < 1) {
             mtrace(get_string('didntgetusersfromldap', 'auth_ldap'));
@@ -165,12 +170,12 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         }
 
 
-        /// Non Grace Period Synchronisation
+        // Non Grace Period Synchronisation.
         if ($this->config->removeuser != AUTH_REMOVEUSER_DELETEWITHGRACEPERIOD) {
 
-            /// User removal
+            // User removal.
             // Find users in DB that aren't in ldap -- to be removed!
-            // this is still not as scalable (but how often do we mass delete?)
+            // this is still not as scalable (but how often do we mass delete?).
 
             if ($this->config->removeuser == AUTH_REMOVEUSER_FULLDELETE) {
                 $sql = "SELECT u.*
@@ -223,7 +228,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 unset($remove_users); // Free mem!
             }
 
-            /// Revive suspended users
+            // Revive suspended users.
             if (!empty($this->config->removeuser) and $this->config->removeuser == AUTH_REMOVEUSER_SUSPEND) {
                 $sql = "SELECT u.id, u.username
                           FROM {user} u
@@ -251,10 +256,10 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             }
         }
 
-        /// Grace Period Synchronisation
+        // Grace Period Synchronisation.
         else if (!empty($this->config->removeuser) and $this->config->removeuser == AUTH_REMOVEUSER_DELETEWITHGRACEPERIOD) {
 
-            /// Revive suspended users
+            // Revive suspended users.
             $sql = "SELECT u.id, u.username
                       FROM {user} u
                       JOIN {tmp_extuser} e ON (u.username = e.username AND u.mnethostid = e.mnethostid)
@@ -278,7 +283,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             }
             unset($revive_users);
 
-            /// User temporary suspending
+            // User temporary suspending.
             $sql = "SELECT u.*
                       FROM {user} u
                  LEFT JOIN {tmp_extuser} e ON (u.username = e.username AND u.mnethostid = e.mnethostid)
@@ -305,7 +310,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             }
             unset($remove_users); // Free mem!
 
-            /// User complete removal
+            // User complete removal.
             $sql = "SELECT u.*
                       FROM {user} u
                  LEFT JOIN {tmp_extuser} e ON (u.username = e.username AND u.mnethostid = e.mnethostid)
@@ -318,7 +323,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 mtrace(get_string('userentriestoremove', 'auth_ldap', count($remove_users)));
 
                 foreach ($remove_users as $user) {
-                    // Do only if user was suspended before grace period
+                    // Do only if user was suspended before grace period.
                     $graceperiod = max(intval($this->config->removeuser_graceperiod), 0);
                             // Fix problems if grace period setting was negative or no number.
                     if (time() - $user->timemodified >= $graceperiod * 24 * 3600) {
@@ -338,14 +343,14 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             unset($remove_users); // Free mem!
         }
 
-        /// User Updates - time-consuming (optional)
+        // User Updates - time-consuming (optional).
         if ($do_updates) {
-            // Narrow down what fields we need to update
+            // Narrow down what fields we need to update.
             $updatekeys = $this->get_profile_keys();
         } else {
             mtrace(get_string('noupdatestobedone', 'auth_ldap'));
         }
-        if ($do_updates and !empty($updatekeys)) { // run updates only if relevant
+        if ($do_updates and !empty($updatekeys)) { // run updates only if relevant.
             $users = $DB->get_records_sql('SELECT u.username, u.id
                                              FROM {user} u
                                             WHERE u.deleted = 0 AND u.auth = ? AND u.mnethostid = ?',
@@ -373,16 +378,16 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     $this->sync_roles($user);
                 }
                 $transaction->allow_commit();
-                unset($users); // free mem
+                unset($users); // free mem.
             }
-        } else { // end do updates
+        } else { // end do updates.
             mtrace(get_string('noupdatestobedone', 'auth_ldap'));
         }
 
-        /// User Additions
+        // User Additions.
         // Find users missing in DB that are in LDAP
         // and gives me a nifty object I don't want.
-        // note: we do not care about deleted accounts anymore, this feature was replaced by suspending to nologin auth plugin
+        // note: we do not care about deleted accounts anymore, this feature was replaced by suspending to nologin auth plugin.
         if (!empty($this->config->sync_script_createuser_enabled) and $this->config->sync_script_createuser_enabled == 1) {
             $sql = 'SELECT e.id, e.username
                       FROM {tmp_extuser} e
@@ -397,13 +402,13 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 foreach ($add_users as $user) {
                     $user = $this->get_userinfo_asobj($user->username);
 
-                    // Prep a few params
+                    // Prep a few params.
                     $user->modified   = time();
                     $user->confirmed  = 1;
                     $user->auth       = $this->authtype;
                     $user->mnethostid = $CFG->mnet_localhost_id;
                     // get_userinfo_asobj() might have replaced $user->username with the value
-                    // from the LDAP server (which can be mixed-case). Make sure it's lowercase
+                    // from the LDAP server (which can be mixed-case). Make sure it's lowercase.
                     $user->username = trim(core_text::strtolower($user->username));
                     // It isn't possible to just rely on the configured suspension attribute since
                     // things like active directory use bit masks, other things using LDAP might
@@ -470,7 +475,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             return;
         }
 
-        // Clean username parameter to make sure that its an email adress.
+        // Clean username parameter to make sure that its an email address.
         $email = clean_param($frm->username, PARAM_EMAIL);
 
         // If we don't have an email adress, there's nothing to do, call parent hook and return.
@@ -479,7 +484,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             return;
         }
 
-        // If there is an existing useraccount with this email adress as email adress (then a Moodle account already exists and
+        // If there is an existing useraccount with this email adress as email address (then a Moodle account already exists and
         // the standard mechanism of $CFG->authloginviaemail will kick in automatically) or if there is an existing useraccount
         // with this email adress as username (which is not forbidden, so this useraccount has to be used), call parent hook and
         // return.
