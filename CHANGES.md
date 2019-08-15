@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2019-08-15 - Prepare compatibility for Moodle 3.7.
+
 ### v3.6-r1
 
 * 2019-01-29 - Check compatibility for Moodle 3.6, no functionality change.
