@@ -4,7 +4,7 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
-### Unreleased
+### v3.7-r1
 
 * 2019-08-15 - Make codechecker happy.
 * 2019-08-15 - Prepare compatibility for Moodle 3.7.
