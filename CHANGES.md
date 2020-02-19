@@ -4,7 +4,7 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
-### Unreleased
+### v3.8-r1
 
 * 2020-02-19 - Adopt code changes Moodle 3.8 core auth_ldap.
 * 2020-02-19 - Prepare compatibility for Moodle 3.8.
