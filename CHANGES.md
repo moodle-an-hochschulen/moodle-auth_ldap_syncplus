@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2020-02-19 - Adopt code changes Moodle 3.8 core auth_ldap.
 * 2020-02-19 - Prepare compatibility for Moodle 3.8.
 
 ### v3.7-r1
