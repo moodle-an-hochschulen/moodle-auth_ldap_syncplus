@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2020-02-26 - Added Behat tests.
+
 ### v3.8-r1
 
 * 2020-02-19 - Adopt code changes Moodle 3.8 core auth_ldap.
