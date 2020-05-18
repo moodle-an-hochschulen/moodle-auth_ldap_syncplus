@@ -1,20 +1,12 @@
 language: php
 
-# Workaround for fixing that Selenium server is not running and therefore Behat tests not working
-sudo: required
-# ORIGINAL:
-# sudo: false
-
 addons:
-  firefox: "47.0.1"
   postgresql: "9.4"
-  apt:
-    packages:
-# Workaround for fixing that Java could not be downloaded from Oracle website.
-      - openjdk-8-jre-headless
-# ORIGINAL:
-#     - oracle-java8-installer
-#     - oracle-java8-set-default
+
+services:
+  - mysql
+  - postgresql
+  - docker
 
 cache:
   directories:
@@ -22,23 +14,25 @@ cache:
     - $HOME/.npm
 
 php:
- - 7.0
- - 7.1
+  - 7.1
+  - 7.2
+  - 7.3
 
 env:
- global:
-  - MOODLE_BRANCH=MOODLE_36_STABLE
- matrix:
-  - DB=pgsql
-  - DB=mysqli
+  global:
+    - MOODLE_BRANCH=MOODLE_38_STABLE
+  matrix:
+    - DB=pgsql
+    - DB=mysqli
 
 before_install:
   - phpenv config-rm xdebug.ini
   - nvm install 8.9
   - nvm use 8.9
   - cd ../..
-  - composer create-project -n --no-dev --prefer-dist blackboard-open-source/moodle-plugin-ci ci ^2
+  - composer create-project -n --no-dev --prefer-dist blackboard-open-source/moodle-plugin-ci ci dev-master
   - export PATH="$(cd ci/bin; pwd):$(cd ci/vendor/bin; pwd):$PATH"
+  - docker run -d -p 127.0.0.1:4444:4444 --net=host -v /dev/shm:/dev/shm selenium/standalone-chrome:3
 
 install:
   - moodle-plugin-ci install
@@ -52,5 +46,6 @@ script:
   - moodle-plugin-ci savepoints
   - moodle-plugin-ci mustache
   - moodle-plugin-ci grunt
+  - moodle-plugin-ci phpdoc
   - moodle-plugin-ci phpunit
-  - moodle-plugin-ci behat --dump
+  - moodle-plugin-ci behat --profile chrome --dump

@@ -47,7 +47,7 @@ function update_user_onevent($eventdata) {
 
                 // Update user.
                 // Actually, we would want to call auth_plugin_base::update_user_record()
-                // which is lighter, but this function is unfortunately protected since Moodle 3.5
+                // which is lighter, but this function is unfortunately protected since Moodle 3.5.
                 update_user_record($user->username);
             }
         }
