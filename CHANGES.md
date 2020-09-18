@@ -4,7 +4,7 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
-### Unreleased
+### v3.9-r1
 
 * 2020-09-18 - Prepare compatibility for Moodle 3.9.
 * 2020-02-26 - Added Behat tests.
