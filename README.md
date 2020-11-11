@@ -1,7 +1,7 @@
 moodle-auth_ldap_syncplus
 =========================
 
-[![Build Status](https://travis-ci.org/moodleuulm/moodle-auth_ldap_syncplus.svg?branch=master)](https://travis-ci.org/moodleuulm/moodle-auth_ldap_syncplus)
+[![Build Status](https://travis-ci.com/moodleuulm/moodle-auth_ldap_syncplus.svg?branch=master)](https://travis-ci.com/moodleuulm/moodle-auth_ldap_syncplus)
 
 Moodle authentication plugin which provides all functionality of auth_ldap, but supports advanced features for the LDAP synchronization task and LDAP authentication.
 
