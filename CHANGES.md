@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2020-12-11 - Adopt code changes from Moodle 3.10 core auth_ldap.
 * 2020-12-11 - Prepare compatibility for Moodle 3.10.
 * 2020-12-10 - Change in Moodle release support:
                For the time being, this plugin is maintained for the most recent LTS release of Moodle as well as the most recent major release of Moodle.
