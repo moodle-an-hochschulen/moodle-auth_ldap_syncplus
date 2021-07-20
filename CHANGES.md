@@ -4,8 +4,9 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
-### Unreleased
+### v3.11-r1
 
+* 2021-07-20 - Prepare compatibility for Moodle 3.11.
 * 2021-02-05 - Move Moodle Plugin CI from Travis CI to Github actions
 
 ### v3.10-r1
