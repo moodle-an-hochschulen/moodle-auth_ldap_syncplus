@@ -118,35 +118,18 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
             do {
                 if ($ldappagedresults) {
-                    // TODO: Remove the old branch of code once PHP 7.3.0 becomes required (Moodle 3.11).
-                    if (version_compare(PHP_VERSION, '7.3.0', '<')) {
-                        // Before 7.3, use this function that was deprecated in PHP 7.4.
-                        ldap_control_paged_result($ldapconnection, $this->config->pagesize, true, $ldapcookie);
-                    } else {
-                        // PHP 7.3 and up, use server controls.
-                        $servercontrols = array(array(
-                            'oid' => LDAP_CONTROL_PAGEDRESULTS, 'value' => array(
-                                'size' => $this->config->pagesize, 'cookie' => $ldapcookie)));
-                    }
+                    $servercontrols = array(array(
+                        'oid' => LDAP_CONTROL_PAGEDRESULTS, 'value' => array(
+                            'size' => $this->config->pagesize, 'cookie' => $ldapcookie)));
                 }
                 if ($this->config->search_sub) {
                     // Use ldap_search to find first user from subtree.
-                    // TODO: Remove the old branch of code once PHP 7.3.0 becomes required (Moodle 3.11).
-                    if (version_compare(PHP_VERSION, '7.3.0', '<')) {
-                        $ldapresult = ldap_search($ldapconnection, $context, $filter, array($this->config->user_attribute));
-                    } else {
-                        $ldapresult = ldap_search($ldapconnection, $context, $filter, array($this->config->user_attribute),
-                            0, -1, -1, LDAP_DEREF_NEVER, $servercontrols);
-                    }
+                    $ldapresult = ldap_search($ldapconnection, $context, $filter, array($this->config->user_attribute),
+                        0, -1, -1, LDAP_DEREF_NEVER, $servercontrols);
                 } else {
                     // Search only in this context.
-                    // TODO: Remove the old branch of code once PHP 7.3.0 becomes required (Moodle 3.11).
-                    if (version_compare(PHP_VERSION, '7.3.0', '<')) {
-                        $ldapresult = ldap_list($ldapconnection, $context, $filter, array($this->config->user_attribute));
-                    } else {
-                        $ldapresult = ldap_list($ldapconnection, $context, $filter, array($this->config->user_attribute),
-                            0, -1, -1, LDAP_DEREF_NEVER, $servercontrols);
-                    }
+                    $ldapresult = ldap_list($ldapconnection, $context, $filter, array($this->config->user_attribute),
+                        0, -1, -1, LDAP_DEREF_NEVER, $servercontrols);
                 }
                 if(!$ldapresult) {
                     continue;
@@ -154,22 +137,11 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 if ($ldappagedresults) {
                     // Get next server cookie to know if we'll need to continue searching.
                     $ldapcookie = '';
-                    // TODO: Remove the old branch of code once PHP 7.3.0 becomes required (Moodle 3.11).
-                    if (version_compare(PHP_VERSION, '7.3.0', '<')) {
-                        // Before 7.3, use this function that was deprecated in PHP 7.4.
-                        $pagedresp = ldap_control_paged_result_response($ldapconnection, $ldapresult, $ldapcookie);
-                        // Function ldap_control_paged_result_response() does not overwrite $ldapcookie if it fails, by
-                        // setting this to null we avoid an infinite loop.
-                        if ($pagedresp === false) {
-                            $ldapcookie = null;
-                        }
-                    } else {
-                        // Get next cookie from controls.
-                        ldap_parse_result($ldapconnection, $ldapresult, $errcode, $matcheddn,
-                            $errmsg, $referrals, $controls);
-                        if (isset($controls[LDAP_CONTROL_PAGEDRESULTS]['value']['cookie'])) {
-                            $ldapcookie = $controls[LDAP_CONTROL_PAGEDRESULTS]['value']['cookie'];
-                        }
+                    // Get next cookie from controls.
+                    ldap_parse_result($ldapconnection, $ldapresult, $errcode, $matcheddn,
+                        $errmsg, $referrals, $controls);
+                    if (isset($controls[LDAP_CONTROL_PAGEDRESULTS]['value']['cookie'])) {
+                        $ldapcookie = $controls[LDAP_CONTROL_PAGEDRESULTS]['value']['cookie'];
                     }
                 }
                 if ($entry = @ldap_first_entry($ldapconnection, $ldapresult)) {
