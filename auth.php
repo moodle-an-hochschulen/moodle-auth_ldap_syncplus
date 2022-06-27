@@ -432,6 +432,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
             if (!empty($add_users)) {
                 mtrace(get_string('userentriestoadd', 'auth_ldap', count($add_users)));
+                $errors = 0;
 
                 $transaction = $DB->start_delegated_transaction();
                 foreach ($add_users as $user) {
@@ -457,6 +458,14 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     }
 
                     $id = user_create_user($user, false);
+                    try {
+                        $id = user_create_user($user, false);
+                    } catch (Exception $e) {
+                        print_string('invaliduserexception', 'auth_ldap', print_r($user, true) .  $e->getMessage());
+                        $errors++;
+                        continue;
+                    }
+
                     mtrace("\t".get_string('auth_dbinsertuser', 'auth_db', array('name'=>$user->username, 'id'=>$id)));
                     $euser = $DB->get_record('user', array('id' => $id));
 
@@ -469,6 +478,11 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
                     // Add roles if needed.
                     $this->sync_roles($euser);
+                }
+
+                // Display number of user creation errors, if any.
+                if ($errors) {
+                    print_string('invalidusererrors', 'auth_ldap', $errors);
                 }
                 $transaction->allow_commit();
                 unset($add_users); // free mem
