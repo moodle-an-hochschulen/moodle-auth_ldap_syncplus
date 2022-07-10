@@ -24,8 +24,6 @@
 
 namespace auth_ldap_syncplus\task;
 
-defined('MOODLE_INTERNAL') || die;
-
 /**
  * The auth_ldap_syncplus scheduled task class for LDAP roles sync
  *
