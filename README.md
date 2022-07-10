@@ -1,7 +1,7 @@
 moodle-auth_ldap_syncplus
 =========================
 
-[![Moodle Plugin CI](https://github.com/moodleuulm/moodle-auth_ldap_syncplus/workflows/Moodle%20Plugin%20CI/badge.svg?branch=master)](https://github.com/moodleuulm/moodle-auth_ldap_syncplus/actions?query=workflow%3A%22Moodle+Plugin+CI%22+branch%3Amaster)
+[![Moodle Plugin CI](https://github.com/moodle-an-hochschulen/moodle-auth_ldap_syncplus/workflows/Moodle%20Plugin%20CI/badge.svg?branch=master)](https://github.com/moodle-an-hochschulen/moodle-auth_ldap_syncplus/actions?query=workflow%3A%22Moodle+Plugin+CI%22+branch%3Amaster)
 
 Moodle authentication plugin which provides all functionality of auth_ldap, but supports advanced features for the LDAP synchronization task and LDAP authentication.
 
@@ -92,7 +92,7 @@ If you already have users in your Moodle installation who authenticate using the
 * Create a test user and set his authentication method to auth_ldap_syncplus. Test if this user is able to log into Moodle properly.
 
 * Switch all existing users to the auth_ldap_syncplus authentication method by running the following SQL command in your Moodle database:
-`UPDATE mdl_user SET auth='ldap_syncplus' WHERE auth='ldap'`
+  `UPDATE mdl_user SET auth='ldap_syncplus' WHERE auth='ldap'`
 
 * Disable auth_ldap authentication method.
 
@@ -121,6 +121,7 @@ This plugin acts behind the scenes, therefore it should work with all Moodle the
 This plugin is developed and tested on Moodle Core's Boost theme.
 It should also work with Boost child themes, including Moodle Core's Classic theme. However, we can't support any other theme than Boost.
 
+
 Plugin repositories
 -------------------
 
@@ -128,7 +129,7 @@ This plugin is published and regularly updated in the Moodle plugins repository:
 http://moodle.org/plugins/view/auth_ldap_syncplus
 
 The latest development version can be found on Github:
-https://github.com/moodleuulm/moodle-auth_ldap_syncplus
+https://github.com/moodle-an-hochschulen/moodle-auth_ldap_syncplus
 
 
 Bug and problem reports / Support requests
@@ -137,7 +138,7 @@ Bug and problem reports / Support requests
 This plugin is carefully developed and thoroughly tested, but bugs and problems can always appear.
 
 Please report bugs and problems on Github:
-https://github.com/moodleuulm/moodle-auth_ldap_syncplus/issues
+https://github.com/moodle-an-hochschulen/moodle-auth_ldap_syncplus/issues
 
 We will do our best to solve your problems, but please note that due to limited resources we can't always provide per-case support.
 
@@ -148,10 +149,10 @@ Feature proposals
 Due to limited resources, the functionality of this plugin is primarily implemented for our own local needs and published as-is to the community. We are aware that members of the community will have other needs and would love to see them solved by this plugin.
 
 Please issue feature proposals on Github:
-https://github.com/moodleuulm/moodle-auth_ldap_syncplus/issues
+https://github.com/moodle-an-hochschulen/moodle-auth_ldap_syncplus/issues
 
 Please create pull requests on Github:
-https://github.com/moodleuulm/moodle-auth_ldap_syncplus/pulls
+https://github.com/moodle-an-hochschulen/moodle-auth_ldap_syncplus/pulls
 
 We are always interested to read about your feature proposals or even get a pull request from you, but please accept that we can handle your issues only as feature _proposals_ and not as feature _requests_.
 
@@ -191,23 +192,28 @@ There is a Moodle tracker ticket on https://tracker.moodle.org/browse/MDL-47030 
 Please vote for this ticket if you want to have this realized.
 
 
-PHP7 Support
-------------
-
-Since Moodle 3.4 core, PHP7 is mandatory. We are developing and testing this plugin for PHP7 only.
-
-
 Maintainers
 -----------
 
-Ulm University\
-Communication and Information Centre (kiz)\
-Alexander Bias
+The plugin is maintained by\
+Moodle an Hochschulen e.V.
 
 
 Copyright
 ---------
 
+The copyright of this plugin is held by\
+Moodle an Hochschulen e.V.
+
+Individual copyrights of individual developers are tracked in PHPDoc comments and Git commits.
+
+
+Initial copyright
+-----------------
+
+This plugin was initially built, maintained and published by\
 Ulm University\
 Communication and Information Centre (kiz)\
 Alexander Bias
+
+It was contributed to the Moodle an Hochschulen e.V. plugin catalogue in 2022.
