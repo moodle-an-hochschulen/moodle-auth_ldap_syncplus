@@ -108,6 +108,12 @@ With auth_ldap_syncplus, you can create an user manually on Site administration 
 This feature is enabled automatically and can be used as soon as you are using auth_ldap_syncplus as your LDAP authentication plugin like described above.
 
 
+Capabilities
+------------
+
+This plugin does not add any additional capabilities.
+
+
 How this plugin works
 ---------------------
 
