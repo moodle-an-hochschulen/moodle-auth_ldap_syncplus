@@ -28,3 +28,9 @@ Manual tests
 ------------
 
 * As the plugin deals with the communication to a backend system, manual tests should be carried out to see if the extended functionality still works with a real LDAP server.
+
+
+Visual checks
+-------------
+
+* There aren't any additional visual checks in the Moodle GUI needed to upgrade this theme.
