@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2022-11-05 - Remove support for PHP < 7.3 (i.e. adopt code change of MDL-73500 from auth_ldap)
 * 2022-11-05 - Adopt code change of MDL-69492 from auth_ldap.
 
 ### v3.11-r3
