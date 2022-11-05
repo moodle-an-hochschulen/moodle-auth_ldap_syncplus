@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2022-11-05 - Adopt code change of MDL-69492 from auth_ldap.
+
 ### v3.9-r4
 
 * 2022-07-10 - Add Visual checks section to UPGRADE.md
