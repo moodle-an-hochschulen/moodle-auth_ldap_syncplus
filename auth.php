@@ -365,11 +365,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             if (!empty($users)) {
                 mtrace(get_string('userentriestoupdate', 'auth_ldap', count($users)));
 
-                $transaction = $DB->start_delegated_transaction();
-                $xcount = 0;
-                $maxxcount = 100;
-
                 foreach ($users as $user) {
+                    $transaction = $DB->start_delegated_transaction();
                     $userinfo = $this->get_userinfo($user->username);
                     if (!$this->update_user_record($user->username, $updatekeys, true,
                             $this->is_user_suspended((object) $userinfo))) {
@@ -379,12 +376,11 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                         $skipped = '';
                     }
                     mtrace("\t".get_string('auth_dbupdatinguser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)).$skipped);
-                    $xcount++;
 
                     // Update system roles, if needed.
                     $this->sync_roles($user);
+                    $transaction->allow_commit();
                 }
-                $transaction->allow_commit();
                 unset($users); // free mem.
             }
         } else { // end do updates.
@@ -405,8 +401,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             if (!empty($add_users)) {
                 mtrace(get_string('userentriestoadd', 'auth_ldap', count($add_users)));
 
-                $transaction = $DB->start_delegated_transaction();
                 foreach ($add_users as $user) {
+                    $transaction = $DB->start_delegated_transaction();
                     $user = $this->get_userinfo_asobj($user->username);
 
                     // Prep a few params.
@@ -441,8 +437,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
                     // Add roles if needed.
                     $this->sync_roles($euser);
+                    $transaction->allow_commit();
                 }
-                $transaction->allow_commit();
                 unset($add_users); // free mem
             } else {
                 mtrace(get_string('nouserstobeadded', 'auth_ldap'));
