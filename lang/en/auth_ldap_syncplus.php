@@ -39,3 +39,7 @@ $string['syncroles'] = 'LDAP roles sync job (Sync Plus)';
 $string['synctask'] = 'LDAP users sync job (Sync Plus)';
 $string['userentriestosuspend'] = 'User entries to be suspended: {$a}';
 $string['waitinginremovalqueue'] = 'Waiting in removal queue for {$a->days} day grace period: {$a->name} ID {$a->id}';
+
+// The following strings were added during the backport of MDL-58395 to 3.11 and can be removed in the 4.0 version again.
+$string['invalidusererrors'] = "Warning: Skipped creation of {\$a} user accounts.\n\n";
+$string['invaliduserexception'] = "\nError: Cannot create new user account. Details and reason:\n{\$a}\nSkipping this user.\n\n";
