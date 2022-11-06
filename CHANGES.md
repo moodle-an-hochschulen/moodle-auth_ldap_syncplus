@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2022-11-06 - Backport MDL-58395 from auth_ldap to version 3.11 of this plugin.
 * 2022-11-06 - Adopt code change of MDL-60666 from auth_ldap.
 * 2022-11-05 - Remove support for PHP < 7.3 (i.e. adopt code change of MDL-73500 from auth_ldap)
 * 2022-11-05 - Adopt code change of MDL-69492 from auth_ldap.

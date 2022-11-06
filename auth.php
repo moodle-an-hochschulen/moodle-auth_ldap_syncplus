@@ -400,6 +400,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
             if (!empty($add_users)) {
                 mtrace(get_string('userentriestoadd', 'auth_ldap', count($add_users)));
+                $errors = 0;
 
                 foreach ($add_users as $user) {
                     $transaction = $DB->start_delegated_transaction();
@@ -424,7 +425,14 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                         $user->calendartype = $CFG->calendartype;
                     }
 
-                    $id = user_create_user($user, false);
+                    // $id = user_create_user($user, false);
+                    try {
+                        $id = user_create_user($user, false);
+                    } catch (Exception $e) {
+                        mtrace(get_string('invaliduserexception', 'auth_ldap_syncplus', print_r($user, true) .  $e->getMessage()));
+                        $errors++;
+                        continue;
+                    }
                     mtrace("\t".get_string('auth_dbinsertuser', 'auth_db', array('name'=>$user->username, 'id'=>$id)));
                     $euser = $DB->get_record('user', array('id' => $id));
 
@@ -439,6 +447,12 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     $this->sync_roles($euser);
                     $transaction->allow_commit();
                 }
+
+                // Display number of user creation errors, if any.
+                if ($errors) {
+                    mtrace(get_string('invalidusererrors', 'auth_ldap_syncplus', $errors));
+                }
+
                 unset($add_users); // free mem
             } else {
                 mtrace(get_string('nouserstobeadded', 'auth_ldap'));
