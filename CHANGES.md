@@ -4,7 +4,7 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
-### Unreleased
+### v3.9-r5
 
 * 2022-11-05 - Adopt code change of MDL-69492 from auth_ldap.
 
