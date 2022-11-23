@@ -4,7 +4,7 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
-### Unreleased
+### v4.0-r1
 
 * 2022-11-23 - Revert backport of MDL-58395.
 * 2022-07-12 - Prepare compatibility for Moodle 4.0.
