@@ -429,7 +429,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     try {
                         $id = user_create_user($user, false);
                     } catch (Exception $e) {
-                        mtrace(get_string('invaliduserexception', 'auth_ldap_syncplus', print_r($user, true) .  $e->getMessage()));
+                        mtrace(get_string('invaliduserexception', 'auth_ldap', print_r($user, true) .  $e->getMessage()));
                         $errors++;
                         continue;
                     }
@@ -450,7 +450,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
                 // Display number of user creation errors, if any.
                 if ($errors) {
-                    mtrace(get_string('invalidusererrors', 'auth_ldap_syncplus', $errors));
+                    mtrace(get_string('invalidusererrors', 'auth_ldap', $errors));
                 }
 
                 unset($add_users); // free mem
