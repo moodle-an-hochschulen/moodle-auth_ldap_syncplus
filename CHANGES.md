@@ -4,7 +4,7 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
-### Unreleased
+### v3.11-r4
 
 * 2022-11-06 - Backport MDL-58395 from auth_ldap to version 3.11 of this plugin.
 * 2022-11-06 - Adopt code change of MDL-60666 from auth_ldap.
