@@ -35,6 +35,16 @@ jobs:
         database: [pgsql, mariadb]
 
     steps:
+      - name: Check out the plugin repository (but just to start the Bitnami docker container from the fixtures subdirectory)
+        uses: actions/checkout@v3
+        with:
+          repository: moodle-an-hochschulen/moodle-auth_ldap_syncplus
+          ref: ${{ matrix.moodle-branch }}
+          path: bitnami-container
+
+      - name: Start Bitnami LDAP
+        run: docker-compose -p ldap -f $GITHUB_WORKSPACE/bitnami-container/tests/fixtures/bitnami-openldap-docker-compose.yaml up -d
+
       - name: Check out repository code
         uses: actions/checkout@v3
         with:
