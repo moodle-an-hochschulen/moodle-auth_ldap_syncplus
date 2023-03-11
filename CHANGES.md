@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2023-01-21 - Prepare compatibility for Moodle 4.1.
 * 2023-03-12 - Tests: Fix a Behat test which broke after Moodle core upstream changes
 * 2023-03-11 - Make codechecker happy again
 * 2023-03-11 - Tests: Change the branch which is checked out to start ldap
