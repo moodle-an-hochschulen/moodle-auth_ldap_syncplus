@@ -39,7 +39,10 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: moodle-an-hochschulen/moodle-auth_ldap_syncplus
-          ref: ${{ matrix.moodle-branch }}
+          # Ideally, we would checkout ${{ matrix.moodle-branch }} here.
+          # But when doing a plugin upgrade, this would let the build fail.
+          # Thus we checkout always the master branch and hope that the steps to start up the Bitnami container won't change too often.
+          ref: master
           path: bitnami-container
 
       - name: Start Bitnami LDAP
