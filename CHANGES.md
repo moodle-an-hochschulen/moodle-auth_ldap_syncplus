@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2023-03-11 - Tests: Change the branch which is checked out to start ldap
 * 2022-12-27 - Add some automated tests on Github actions, solves #32
 * 2022-11-28 - Updated Moodle Plugin CI to latest upstream recommendations
 
