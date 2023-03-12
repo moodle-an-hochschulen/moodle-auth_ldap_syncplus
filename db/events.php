@@ -26,8 +26,8 @@ defined('MOODLE_INTERNAL') || die();
 
 $observers = array(
     array(
-        'eventname'   => '\core\event\user_created',
+        'eventname' => '\core\event\user_created',
         'includefile' => '/auth/ldap_syncplus/eventhandler.php',
-        'callback'    => 'update_user_onevent',
+        'callback' => 'update_user_onevent',
     ),
 );
