@@ -172,8 +172,8 @@ if ($ADMIN->fulltree) {
         // Password Type.
         $passtype = array();
         $passtype['plaintext'] = get_string('plaintext', 'auth');
-        $passtype['md5']       = get_string('md5', 'auth');
-        $passtype['sha1']      = get_string('sha1', 'auth');
+        $passtype['md5'] = get_string('md5', 'auth');
+        $passtype['sha1'] = get_string('sha1', 'auth');
 
         $settings->add(new admin_setting_configselect('auth_ldap_syncplus/passtype',
                 new lang_string('auth_ldap_passtype_key', 'auth_ldap'),
@@ -344,7 +344,7 @@ if ($ADMIN->fulltree) {
 
     // Display locking / mapping of profile fields.
     $authplugin = get_auth_plugin('ldap_syncplus');
-    $help  = get_string('auth_ldapextrafields', 'auth_ldap');
+    $help = get_string('auth_ldapextrafields', 'auth_ldap');
     $help .= get_string('auth_updatelocal_expl', 'auth');
     $help .= get_string('auth_fieldlock_expl', 'auth');
     $help .= get_string('auth_updateremote_expl', 'auth');
