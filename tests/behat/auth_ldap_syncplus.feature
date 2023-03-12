@@ -187,7 +187,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | Username                        | user01        |
       | Choose an authentication method | ldap_syncplus |
       | First name                      | Foo           |
-      | Surname                         | Bar           |
+      | Last name                       | Bar           |
       | Email address                   | foo@bar.com   |
       | New password                    | Hello!123     |
     And I press "Create user"
@@ -196,7 +196,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I click on "Edit" "link" in the "User 01" "table_row"
     And the field "Username" matches value "user01"
     And the field "First name" matches value "User"
-    And the field "Surname" matches value "01"
+    And the field "Last name" matches value "01"
     And the field "Email address" matches value "user01@example.com"
 
   Scenario: First login via email should be possible without an existing Moodle account
@@ -230,7 +230,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I click on "Edit" "link" in the "User 01" "table_row"
     And I set the following fields to these values:
       | First name    | Foo         |
-      | Surname       | Bar         |
+      | Last name     | Bar         |
       | Email address | foo@bar.com |
     And I press "Update profile"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
@@ -243,5 +243,5 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I click on "Edit" "link" in the "User 01" "table_row"
     And the field "Username" matches value "user01"
     And the field "First name" matches value "User"
-    And the field "Surname" matches value "01"
+    And the field "Last name" matches value "01"
     And the field "Email address" matches value "user01@example.com"

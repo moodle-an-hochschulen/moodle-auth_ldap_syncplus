@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2023-03-12 - Tests: Fix a Behat test which broke after Moodle core upstream changes
 * 2023-03-11 - Make codechecker happy again
 * 2023-03-11 - Tests: Change the branch which is checked out to start ldap
 * 2022-12-27 - Add some automated tests on Github actions, solves #32
