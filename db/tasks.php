@@ -24,8 +24,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$tasks = array(
-    array(
+$tasks = [
+    [
         'classname' => 'auth_ldap_syncplus\task\sync_roles',
         'blocking' => 0,
         'minute' => '0',
@@ -33,9 +33,9 @@ $tasks = array(
         'day' => '*',
         'month' => '*',
         'dayofweek' => '*',
-        'disabled' => 1
-    ),
-    array(
+        'disabled' => 1,
+    ],
+    [
         'classname' => 'auth_ldap_syncplus\task\sync_task',
         'blocking' => 0,
         'minute' => '0',
@@ -43,6 +43,6 @@ $tasks = array(
         'day' => '*',
         'month' => '*',
         'dayofweek' => '*',
-        'disabled' => 1
-    )
-);
+        'disabled' => 1,
+    ],
+];

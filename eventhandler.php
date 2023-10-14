@@ -35,7 +35,7 @@ function update_user_onevent($eventdata) {
     if (!empty($eventdata->relateduserid)) {
 
         // Get user data.
-        $user = $DB->get_record('user', array('id' => $eventdata->relateduserid));
+        $user = $DB->get_record('user', ['id' => $eventdata->relateduserid]);
 
         // Do if user was found.
         if (!empty($user->username)) {

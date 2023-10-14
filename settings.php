@@ -57,7 +57,7 @@ if ($ADMIN->fulltree) {
                 get_string('auth_ldap_host_url', 'auth_ldap'), '', PARAM_RAW_TRIMMED));
 
         // Version.
-        $versions = array();
+        $versions = [];
         $versions[2] = '2';
         $versions[3] = '3';
         $settings->add(new admin_setting_configselect('auth_ldap_syncplus/ldap_version',
@@ -65,10 +65,10 @@ if ($ADMIN->fulltree) {
                 new lang_string('auth_ldap_version', 'auth_ldap'), 3, $versions));
 
         // Start TLS.
-        $yesno = array(
+        $yesno = [
             new lang_string('no'),
             new lang_string('yes'),
-        );
+        ];
         $settings->add(new admin_setting_configselect('auth_ldap_syncplus/start_tls',
                 new lang_string('start_tls_key', 'auth_ldap'),
                 new lang_string('start_tls', 'auth_ldap'), 0 , $yesno));
@@ -123,7 +123,7 @@ if ($ADMIN->fulltree) {
                 new lang_string('auth_ldap_search_sub', 'auth_ldap'), 0 , $yesno));
 
         // Dereference aliases.
-        $optderef = array();
+        $optderef = [];
         $optderef[LDAP_DEREF_NEVER] = get_string('no');
         $optderef[LDAP_DEREF_ALWAYS] = get_string('yes');
 
@@ -171,7 +171,7 @@ if ($ADMIN->fulltree) {
                 get_string('stdchangepassword_explldap', 'auth'), 0 , $yesno));
 
         // Password Type.
-        $passtype = array();
+        $passtype = [];
         $passtype['plaintext'] = get_string('plaintext', 'auth');
         $passtype['md5'] = get_string('md5', 'auth');
         $passtype['sha1'] = get_string('sha1', 'auth');
@@ -200,7 +200,7 @@ if ($ADMIN->fulltree) {
         $description = new lang_string('auth_ldap_expiration_desc', 'auth_ldap', $langobject);
 
         // Now create the options.
-        $expiration = array();
+        $expiration = [];
         $expiration['0'] = $strno;
         $expiration['1'] = $strldapserver;
 
@@ -261,9 +261,9 @@ if ($ADMIN->fulltree) {
             // If we were to manipulate the setting name by removing the hyphens we may get conflicts, eg
             // 'thisisashortname' and 'this-is-a-short-name'. The same applies for shortening the setting name.
             if (core_text::strlen($role['settingname']) > 100 || !preg_match('/^[a-zA-Z0-9_]+$/', $role['settingname'])) {
-                $url = new moodle_url('/admin/roles/define.php', array('action' => 'edit', 'roleid' => $role['id']));
+                $url = new moodle_url('/admin/roles/define.php', ['action' => 'edit', 'roleid' => $role['id']]);
                 $a = (object)['rolename' => $role['localname'], 'shortname' => $role['shortname'], 'charlimit' => 93,
-                              'link' => $url->out()];
+                              'link' => $url->out(), ];
                 $settings->add(new admin_setting_heading('auth_ldap_syncplus/role_not_mapped_' . sha1($role['settingname']), '',
                         get_string('cannotmaprole', 'auth_ldap', $a)));
             } else {
@@ -278,7 +278,7 @@ if ($ADMIN->fulltree) {
                 new lang_string('auth_sync_script', 'auth'), ''));
 
         // Remove external user.
-        $deleteopt = array();
+        $deleteopt = [];
         $deleteopt[AUTH_REMOVEUSER_KEEP] = get_string('auth_remove_keep', 'auth');
         $deleteopt[AUTH_REMOVEUSER_SUSPEND] = get_string('auth_remove_suspend', 'auth');
         $deleteopt[AUTH_REMOVEUSER_FULLDELETE] = get_string('auth_remove_delete', 'auth');
@@ -318,7 +318,7 @@ if ($ADMIN->fulltree) {
                 get_string('auth_ntlmsso_subnet', 'auth_ldap'), '', PARAM_RAW_TRIMMED));
 
         // NTLM Fast Path.
-        $fastpathoptions = array();
+        $fastpathoptions = [];
         $fastpathoptions[AUTH_NTLM_FASTPATH_YESFORM] = get_string('auth_ntlmsso_ie_fastpath_yesform', 'auth_ldap');
         $fastpathoptions[AUTH_NTLM_FASTPATH_YESATTEMPT] = get_string('auth_ntlmsso_ie_fastpath_yesattempt', 'auth_ldap');
         $fastpathoptions[AUTH_NTLM_FASTPATH_ATTEMPT] = get_string('auth_ntlmsso_ie_fastpath_attempt', 'auth_ldap');
@@ -329,7 +329,7 @@ if ($ADMIN->fulltree) {
                 AUTH_NTLM_FASTPATH_ATTEMPT, $fastpathoptions));
 
         // Authentication type.
-        $types = array();
+        $types = [];
         $types['ntlm'] = 'NTLM';
         $types['kerberos'] = 'Kerberos';
 

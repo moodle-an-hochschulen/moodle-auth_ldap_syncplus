@@ -48,7 +48,7 @@ class behat_auth_ldap_syncplus extends behat_base {
         global $DB;
 
         // Get the user record of the given user.
-        $user = $DB->get_record('user', array('username' => $username));
+        $user = $DB->get_record('user', ['username' => $username]);
 
         // Update the suspended field in the user record.
         $user->suspended = 1;
