@@ -114,6 +114,22 @@ Capabilities
 This plugin does not add any additional capabilities.
 
 
+Scheduled Tasks
+---------------
+
+This plugin also introduces these additional scheduled tasks:
+
+### \auth_ldap_syncplus\task\sync_roles
+
+This task is basically the same as the \auth_ldap\task\sync_roles task and will sync roles from LDAP.\
+By default, the task is disabled.
+
+### \auth_ldap_syncplus\task\sync_task
+
+This task is basically the same as the \auth_ldap\task\sync_task task and will sync users from LDAP.\
+By default, the task is disabled.
+
+
 How this plugin works
 ---------------------
 
