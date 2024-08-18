@@ -22,7 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['pluginname'] = 'LDAP server (Sync Plus)';
 $string['auth_ldap_syncplusdescription'] = 'This method provides authentication against an external LDAP server.
                                   If the given username and password are valid, Moodle creates a new user
                                   entry in its database. This module can read user attributes from LDAP and prefill
@@ -30,6 +29,7 @@ $string['auth_ldap_syncplusdescription'] = 'This method provides authentication 
                                   password are checked.';
 $string['auth_remove_deletewithgraceperiod'] = 'Suspend internal and fully delete internal after grace period';
 $string['nouserentriestosuspend'] = 'No user entries to be suspended';
+$string['pluginname'] = 'LDAP server (Sync Plus)';
 $string['privacy:metadata'] = 'The LDAP server (Sync Plus) authentication plugin does not store any personal data.';
 $string['removeuser_graceperiod'] = 'Fully deleting grace period';
 $string['removeuser_graceperiod_desc'] = 'After suspending a user internally, the synchronization script will wait for this number of days until the user will be fully deleted internal. If the user re-appears in LDAP within this grace period, the user will be reactivated. Note: This setting is only used if "Removed ext user" is set to "Suspend internal and fully delete internal after grace period"';
