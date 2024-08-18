@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-// @codingStandardsIgnoreFile
+// phpcs:disable
 // Let codechecker ignore this file. This code mostly re-used from auth_ldap and the problems are already there and not made by us.
 
 global $CFG;
