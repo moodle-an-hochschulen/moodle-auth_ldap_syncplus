@@ -1,5 +1,3 @@
-version: '2'
-
 services:
   openldap:
     image: docker.io/bitnami/openldap:2.6
