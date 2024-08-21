@@ -4,7 +4,7 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
-### Unreleased
+### v4.3-r2
 
 * 2024-08-19 - Fix behat tests which broke due to Github actions changes
 * 2024-08-11 - Add section for scheduled tasks to README
