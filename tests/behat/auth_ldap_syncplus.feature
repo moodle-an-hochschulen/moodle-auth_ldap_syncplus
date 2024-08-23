@@ -51,22 +51,22 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | user03   | User      | 03       | user03@example.com | ldap_syncplus |
     When I log in as "admin"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
-    And I should see "User 01" in the "#users" "css_element"
-    And I should see "User 03" in the "#users" "css_element"
-    And ".usersuspended" "css_element" should not exist in the "User 01" "table_row"
-    And ".usersuspended" "css_element" should not exist in the "User 03" "table_row"
+    And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Suspended" in the "User 01" "table_row"
+    And I should not see "Suspended" in the "User 03" "table_row"
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
-    Then I should see "User 01" in the "#users" "css_element"
-    And I should see "User 03" in the "#users" "css_element"
-    And ".usersuspended" "css_element" should not exist in the "User 01" "table_row"
-    And ".usersuspended" "css_element" should exist in the "User 03" "table_row"
+    Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Suspended" in the "User 01" "table_row"
+    And I should see "Suspended" in the "User 03" "table_row"
     And I pretend the suspended user "user03" was suspended "3" days ago
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
-    Then I should see "User 01" in the "#users" "css_element"
-    And I should not see "User 03" in the "#users" "css_element"
-    And ".usersuspended" "css_element" should not exist in the "User 01" "table_row"
+    Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Suspended" in the "User 01" "table_row"
 
   Scenario: The LDAP synchronization task should revive suspended users who have re-appeared in LDAP within the grace period
     Given the following config values are set as admin:
@@ -81,16 +81,16 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     When I log in as "admin"
     And I pretend the suspended user "user02" was suspended "1" days ago
     And I navigate to "Users > Accounts > Browse list of users" in site administration
-    And I should see "User 01" in the "#users" "css_element"
-    And I should see "User 02" in the "#users" "css_element"
-    And ".usersuspended" "css_element" should not exist in the "User 01" "table_row"
-    And ".usersuspended" "css_element" should exist in the "User 02" "table_row"
+    And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "User 02" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Suspended" in the "User 01" "table_row"
+    And I should see "Suspended" in the "User 02" "table_row"
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
-    Then I should see "User 01" in the "#users" "css_element"
-    And I should see "User 02" in the "#users" "css_element"
-    And ".usersuspended" "css_element" should not exist in the "User 01" "table_row"
-    And ".usersuspended" "css_element" should not exist in the "User 02" "table_row"
+    Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "User 02" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Suspended" in the "User 01" "table_row"
+    And I should not see "Suspended" in the "User 02" "table_row"
 
   Scenario: The LDAP synchronization task should suspend users who have disappeared in LDAP (Countercheck / Moodle core behaviour)
     Given the following config values are set as admin:
@@ -103,16 +103,16 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | user03   | User      | 03       | user03@example.com | ldap_syncplus |
     When I log in as "admin"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
-    And I should see "User 01" in the "#users" "css_element"
-    And I should see "User 03" in the "#users" "css_element"
-    And ".usersuspended" "css_element" should not exist in the "User 01" "table_row"
-    And ".usersuspended" "css_element" should not exist in the "User 03" "table_row"
+    And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Suspended" in the "User 01" "table_row"
+    And I should not see "Suspended" in the "User 03" "table_row"
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
-    Then I should see "User 01" in the "#users" "css_element"
-    And I should see "User 03" in the "#users" "css_element"
-    And ".usersuspended" "css_element" should not exist in the "User 01" "table_row"
-    And ".usersuspended" "css_element" should exist in the "User 03" "table_row"
+    Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Suspended" in the "User 01" "table_row"
+    And I should see "Suspended" in the "User 03" "table_row"
 
   Scenario: The LDAP synchronization task should revive suspended users who have re-appeared in LDAP after they have been suspended
     Given the following config values are set as admin:
@@ -126,16 +126,16 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     When I log in as "admin"
     And I pretend the suspended user "user02" was suspended "1" days ago
     And I navigate to "Users > Accounts > Browse list of users" in site administration
-    And I should see "User 01" in the "#users" "css_element"
-    And I should see "User 02" in the "#users" "css_element"
-    And ".usersuspended" "css_element" should not exist in the "User 01" "table_row"
-    And ".usersuspended" "css_element" should exist in the "User 02" "table_row"
+    And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "User 02" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Suspended" in the "User 01" "table_row"
+    And I should see "Suspended" in the "User 02" "table_row"
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
-    Then I should see "User 01" in the "#users" "css_element"
-    And I should see "User 02" in the "#users" "css_element"
-    And ".usersuspended" "css_element" should not exist in the "User 01" "table_row"
-    And ".usersuspended" "css_element" should not exist in the "User 02" "table_row"
+    Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "User 02" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Suspended" in the "User 01" "table_row"
+    And I should not see "Suspended" in the "User 02" "table_row"
 
   Scenario: The LDAP synchronization task should delete users who have disappeared in LDAP (Countercheck / Moodle core behaviour)
     Given the following config values are set as admin:
@@ -148,15 +148,15 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | user03   | User      | 03       | user03@example.com | ldap_syncplus |
     When I log in as "admin"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
-    And I should see "User 01" in the "#users" "css_element"
-    And I should see "User 03" in the "#users" "css_element"
-    And ".usersuspended" "css_element" should not exist in the "User 01" "table_row"
-    And ".usersuspended" "css_element" should not exist in the "User 03" "table_row"
+    And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Suspended" in the "User 01" "table_row"
+    And I should not see "Suspended" in the "User 03" "table_row"
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
-    Then I should see "User 01" in the "#users" "css_element"
-    And I should not see "User 03" in the "#users" "css_element"
-    And ".usersuspended" "css_element" should not exist in the "User 01" "table_row"
+    Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Suspended" in the "User 01" "table_row"
 
   Scenario: The LDAP synchronization task should not create Moodle accounts for all LDAP users
     Given the following config values are set as admin:
@@ -164,10 +164,10 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | sync_script_createuser_enabled | 0     | auth_ldap_syncplus |
     When I log in as "admin"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
-    And I should not see "User 01" in the "#users" "css_element"
+    And I should not see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
-    Then I should not see "User 01" in the "#users" "css_element"
+    Then I should not see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
 
   Scenario: The LDAP synchronization task should create Moodle accounts for all LDAP users (Countercheck / Moodle core behaviour)
     Given the following config values are set as admin:
@@ -175,10 +175,10 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | sync_script_createuser_enabled | 1     | auth_ldap_syncplus |
     When I log in as "admin"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
-    And I should not see "User 01" in the "#users" "css_element"
+    And I should not see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
-    Then I should see "User 01" in the "#users" "css_element"
+    Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
 
   Scenario: On manual user creation, user details should be fetched from LDAP
     When I log in as "admin"
@@ -192,7 +192,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | New password                    | Hello!123     |
     And I press "Create user"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
-    Then I should see "User 01" in the "#users" "css_element"
+    Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I click on "Edit" "link" in the "User 01" "table_row"
     And the field "Username" matches value "user01"
     And the field "First name" matches value "User"
@@ -225,8 +225,8 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | user01   | User      | 01       | user01@example.com | ldap_syncplus |
     When I log in as "admin"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
-    And I should see "User 01" in the "#users" "css_element"
-    And I should not see "Foo Bar" in the "#users" "css_element"
+    And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Foo Bar" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I click on "Edit" "link" in the "User 01" "table_row"
     And I set the following fields to these values:
       | First name    | Foo         |
@@ -234,12 +234,12 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | Email address | foo@bar.com |
     And I press "Update profile"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
-    And I should not see "User 01" in the "#users" "css_element"
-    And I should see "Foo Bar" in the "#users" "css_element"
+    And I should not see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "Foo Bar" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
-    Then I should see "User 01" in the "#users" "css_element"
-    And I should not see "Foo Bar" in the "#users" "css_element"
+    Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Foo Bar" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I click on "Edit" "link" in the "User 01" "table_row"
     And the field "Username" matches value "user01"
     And the field "First name" matches value "User"
