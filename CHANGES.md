@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2024-08-20 - Prepare compatibility for Moodle 4.4.
+
 ### v4.3-r2
 
 * 2024-08-19 - Fix behat tests which broke due to Github actions changes
