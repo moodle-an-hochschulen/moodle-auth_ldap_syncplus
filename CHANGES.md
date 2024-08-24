@@ -4,7 +4,7 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
-### Unreleased
+### v4.4-r1
 
 * 2024-08-24 - Development: Rename master branch to main, please update your clones.
 * 2024-08-22 - Upgrade: Fix Behat scenarios which broke on 4.4.
