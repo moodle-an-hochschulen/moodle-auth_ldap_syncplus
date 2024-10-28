@@ -263,7 +263,7 @@ if ($ADMIN->fulltree) {
             // If we were to manipulate the setting name by removing the hyphens we may get conflicts, eg
             // 'thisisashortname' and 'this-is-a-short-name'. The same applies for shortening the setting name.
             if (core_text::strlen($role['settingname']) > 100 || !preg_match('/^[a-zA-Z0-9_]+$/', $role['settingname'])) {
-                $url = new moodle_url('/admin/roles/define.php', ['action' => 'edit', 'roleid' => $role['id']]);
+                $url = new \core\url('/admin/roles/define.php', ['action' => 'edit', 'roleid' => $role['id']]);
                 $a = (object)['rolename' => $role['localname'], 'shortname' => $role['shortname'], 'charlimit' => 93,
                               'link' => $url->out(), ];
                 $settings->add(new admin_setting_heading('auth_ldap_syncplus/role_not_mapped_' . sha1($role['settingname']), '',
