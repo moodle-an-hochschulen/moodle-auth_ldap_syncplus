@@ -1,7 +1,7 @@
 moodle-auth_ldap_syncplus
 =========================
 
-[![Moodle Plugin CI](https://github.com/moodle-an-hochschulen/moodle-auth_ldap_syncplus/workflows/Moodle%20Plugin%20CI/badge.svg?branch=main)](https://github.com/moodle-an-hochschulen/moodle-auth_ldap_syncplus/actions?query=workflow%3A%22Moodle+Plugin+CI%22+branch%3Amain)
+[![Moodle Plugin CI](https://github.com/moodle-an-hochschulen/moodle-auth_ldap_syncplus/workflows/Moodle%20Plugin%20CI/badge.svg?branch=MOODLE_405_STABLE)](https://github.com/moodle-an-hochschulen/moodle-auth_ldap_syncplus/actions?query=workflow%3A%22Moodle+Plugin+CI%22+branch%3AMOODLE_405_STABLE)
 
 Moodle authentication plugin which provides all functionality of auth_ldap, but supports advanced features for the LDAP synchronization task and LDAP authentication.
 
