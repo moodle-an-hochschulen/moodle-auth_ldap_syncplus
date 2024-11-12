@@ -290,8 +290,8 @@ if ($ADMIN->fulltree) {
 
         // Remove external user grace period.
         $settings->add(new admin_setting_configtext('auth_ldap_syncplus/removeuser_graceperiod',
-                get_string('removeuser_graceperiod', 'auth_ldap_syncplus'),
-                get_string('removeuser_graceperiod_desc', 'auth_ldap_syncplus'), 10, PARAM_INT));
+                new lang_string('removeuser_graceperiod', 'auth_ldap_syncplus'),
+                new lang_string('removeuser_graceperiod_desc', 'auth_ldap_syncplus'), 10, PARAM_INT));
 
         // Create users.
         $settings->add(new admin_setting_configselect('auth_ldap_syncplus/sync_script_createuser_enabled',
