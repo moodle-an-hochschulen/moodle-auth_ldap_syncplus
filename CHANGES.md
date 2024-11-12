@@ -4,7 +4,7 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
-### Unreleased
+### v4.3-r3
 
 * 2024-11-12 - Improvement: Change location of event observer code, resolves #26
 
