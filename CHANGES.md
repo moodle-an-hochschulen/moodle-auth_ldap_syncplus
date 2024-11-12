@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2024-11-12 - Improvement: Change location of event observer code, resolves #26
+
 ### v4.4-r1
 
 * 2024-08-24 - Development: Rename master branch to main, please update your clones.
