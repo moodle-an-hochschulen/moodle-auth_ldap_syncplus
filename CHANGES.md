@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2024-11-12 - Improvement: Change location of event observer code, resolves #26
+
 ### v4.1-r3
 
 * 2024-08-19 - Fix behat tests which broke due to Github actions changes
