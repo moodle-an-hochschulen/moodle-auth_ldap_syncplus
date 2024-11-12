@@ -237,6 +237,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I should not see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should see "Foo Bar" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I run all adhoc tasks
     And I reload the page
     Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "Foo Bar" in the "[data-region='report-user-list-wrapper']" "css_element"
