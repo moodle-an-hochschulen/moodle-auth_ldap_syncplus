@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2024-11-12 - Upgrade: Adopt changes from MDL-66151 and use \core\session\manager::destroy_user_sessions() now.
 * 2024-11-12 - Improvement: Change location of event observer code, resolves #26
 
 ### v4.5-r1
