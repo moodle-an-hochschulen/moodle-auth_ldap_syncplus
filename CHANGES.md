@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2024-11-12 - Improvement: Change location of event observer code, resolves #26
+
 ### v4.5-r1
 
 * 2024-10-14 - Upgrade: Adopt changes from MDL-81960 and use new \core\url class
