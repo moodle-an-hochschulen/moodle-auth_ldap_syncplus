@@ -4,7 +4,7 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
-### Unreleased
+### v4.5-r2
 
 * 2024-11-12 - Upgrade: Adopt changes from MDL-73703 and break the sync task user updates into chunks, resolves #36
 * 2024-11-12 - Upgrade: Adopt changes from MDL-66151 and use \core\session\manager::destroy_user_sessions() now.
