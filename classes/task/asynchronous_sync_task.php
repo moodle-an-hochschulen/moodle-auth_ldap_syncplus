@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Auth plugin "LDAP SyncPlus" - Task definition
+ * Auth plugin "LDAP SyncPlus" - Ad-hoc task definition
  *
  * @package    auth_ldap_syncplus
  * @copyright  2024 Alexander Bias, ssystems GmbH <abias@ssystems.de>
@@ -25,49 +25,37 @@
 
 namespace auth_ldap_syncplus\task;
 
+use core\task\adhoc_task;
+
 /**
- * The auth_ldap_syncplus scheduled task class for LDAP user sync
+ * The auth_ldap_syncplus ad-hoc task class for LDAP user update
  *
  * @package    auth_ldap_syncplus
  * @copyright  2024 Alexander Bias, ssystems GmbH <abias@ssystems.de>
  *             based on code by Catalyst IT
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class sync_task extends \core\task\scheduled_task {
+class asynchronous_sync_task extends adhoc_task {
     /** @var string Message prefix for mtrace */
     protected const MTRACE_MSG = 'Synced LDAP (Sync Plus) users';
 
     /**
-     * Return localised task name.
-     *
-     * @return string
+     * Constructor
      */
-    public function get_name() {
-        return get_string('synctask', 'auth_ldap_syncplus');
+    public function __construct() {
+        $this->set_component('auth_ldap_syncplus');
     }
 
     /**
-     * Execute scheduled task
-     *
-     * @return boolean
+     * Run users sync.
      */
     public function execute() {
-        if (is_enabled_auth('ldap_syncplus')) {
-            /** @var auth_plugin_ldap_syncplus $auth */
-            $auth = get_auth_plugin('ldap_syncplus');
-            $count = 0;
-            $auth->sync_users_update_callback(function ($users, $updatekeys) use (&$count) {
-                $asynctask = new asynchronous_sync_task();
-                $asynctask->set_custom_data([
-                    'users' => $users,
-                    'updatekeys' => $updatekeys,
-                ]);
-                \core\task\manager::queue_adhoc_task($asynctask);
+        $data = $this->get_custom_data();
 
-                $count++;
-                mtrace(sprintf(" %s (%d)", self::MTRACE_MSG, $count));
-                sleep(1);
-            });
-        }
+        /** @var auth_plugin_ldap $auth */
+        $auth = get_auth_plugin('ldap_syncplus');
+        $auth->update_users($data->users, $data->updatekeys);
+
+        mtrace(sprintf(" %s (%d)", self::MTRACE_MSG, count($data->users)));
     }
 }

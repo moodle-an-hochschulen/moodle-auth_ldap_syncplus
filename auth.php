@@ -67,16 +67,29 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
 
     /**
-     * Syncronizes user fron external LDAP server to moodle user table
+     * Synchronise users from the external LDAP server to Moodle's user table.
+     *
+     * Calls sync_users_update_callback() with default callback if appropriate.
+     *
+     * @param bool $doupdates will do pull in data updates from LDAP if relevant
+     * @return bool success
+     */
+    public function sync_users($doupdates = true) {
+        return $this->sync_users_update_callback($doupdates ? [$this, 'update_users'] : null);
+    }
+
+    /**
+     * Synchronise users from the external LDAP server to Moodle's user table (callback).
      *
      * Sync is now using username attribute.
      *
      * Syncing users removes or suspends users that dont exists anymore in external LDAP.
      * Creates new users and updates coursecreator status of users.
      *
-     * @param bool $do_updates will do pull in data updates from LDAP if relevant
+     * @param callable|null $updatecallback will do pull in data updates from LDAP if relevant
+     * @return bool success
      */
-    function sync_users($do_updates=true) {
+    public function sync_users_update_callback(?callable $updatecallback = null): bool {
         global $CFG, $DB;
 
         require_once($CFG->dirroot . '/user/profile/lib.php');
@@ -351,39 +364,23 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         }
 
         // User Updates - time-consuming (optional).
-        if ($do_updates) {
-            // Narrow down what fields we need to update.
-            $updatekeys = $this->get_profile_keys();
-        } else {
-            mtrace(get_string('noupdatestobedone', 'auth_ldap'));
-        }
-        if ($do_updates and !empty($updatekeys)) { // run updates only if relevant.
+        if ($updatecallback && $updatekeys = $this->get_profile_keys()) { // Run updates only if relevant.
             $users = $DB->get_records_sql('SELECT u.username, u.id
                                              FROM {user} u
                                             WHERE u.deleted = 0 AND u.auth = ? AND u.mnethostid = ?',
                                           array($this->authtype, $CFG->mnet_localhost_id));
             if (!empty($users)) {
-                mtrace(get_string('userentriestoupdate', 'auth_ldap', count($users)));
-
-                foreach ($users as $user) {
-                    $transaction = $DB->start_delegated_transaction();
-                    $userinfo = $this->get_userinfo($user->username);
-                    if (!$this->update_user_record($user->username, $updatekeys, true,
-                            $this->is_user_suspended((object) $userinfo))) {
-                        $skipped = ' - '.get_string('skipped');
+                // Update users in chunks as specified in sync_updateuserchunk.
+                if (!empty($this->config->sync_updateuserchunk)) {
+                    foreach (array_chunk($users, $this->config->sync_updateuserchunk) as $chunk) {
+                        call_user_func($updatecallback, $chunk, $updatekeys);
                     }
-                    else {
-                        $skipped = '';
-                    }
-                    mtrace("\t".get_string('auth_dbupdatinguser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)).$skipped);
-
-                    // Update system roles, if needed.
-                    $this->sync_roles($user);
-                    $transaction->allow_commit();
+                } else {
+                    call_user_func($updatecallback, $users, $updatekeys);
                 }
-                unset($users); // free mem.
+                unset($users); // Free mem.
             }
-        } else { // end do updates.
+        } else {
             mtrace(get_string('noupdatestobedone', 'auth_ldap'));
         }
 
@@ -467,6 +464,35 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         return true;
     }
 
+    /**
+     * Update users from the external LDAP server into Moodle's user table.
+     *
+     * Sync helper
+     *
+     * @param array $users chunk of users to update
+     * @param array $updatekeys fields to update
+     */
+    public function update_users(array $users, array $updatekeys): void {
+        global $DB;
+
+        mtrace(get_string('userentriestoupdate', 'auth_ldap', count($users)));
+
+        foreach ($users as $user) {
+            $transaction = $DB->start_delegated_transaction();
+            echo "\t";
+            print_string('auth_dbupdatinguser', 'auth_db', ['name' => $user->username, 'id' => $user->id]);
+            $userinfo = $this->get_userinfo($user->username);
+            if (!$this->update_user_record($user->username, $updatekeys, true,
+                    $this->is_user_suspended((object) $userinfo))) {
+                echo ' - '.get_string('skipped');
+            }
+            echo "\n";
+
+            // Update system roles, if needed.
+            $this->sync_roles($user);
+            $transaction->allow_commit();
+        }
+    }
 
     /**
      * Support login via email ($CFG->authloginviaemail) for first-time LDAP logins

@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2024-11-12 - Upgrade: Adopt changes from MDL-73703 and break the sync task user updates into chunks, resolves #36
 * 2024-11-12 - Improvement: Change location of event observer code, resolves #26
 
 ### v4.4-r1
