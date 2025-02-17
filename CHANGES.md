@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2025-02-17 - Bugfix: The sync task did not close the DB transaction if an invaliduserexception was thrown, adopt changes from auth_ldap in MDL-79362.
+
 ### v4.5-r2
 
 * 2024-11-12 - Upgrade: Adopt changes from MDL-73703 and break the sync task user updates into chunks, resolves #36
