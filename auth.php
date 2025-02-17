@@ -428,6 +428,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     } catch (Exception $e) {
                         mtrace(get_string('invaliduserexception', 'auth_ldap', print_r($user, true) .  $e->getMessage()));
                         $errors++;
+                        $transaction->allow_commit();
                         continue;
                     }
                     mtrace("\t".get_string('auth_dbinsertuser', 'auth_db', array('name'=>$user->username, 'id'=>$id)));
