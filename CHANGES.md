@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2025-04-07 - Expert feature: Allow the usage of the plugin's sync task for other auth plugins, resolves #37.
+
 ### v5.0-r1
 
 * 2025-04-14 - Prepare compatibility for Moodle 5.0.

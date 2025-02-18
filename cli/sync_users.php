@@ -31,11 +31,14 @@ require(__DIR__.'/../../../config.php'); // global moodle config file.
 require_once($CFG->dirroot.'/course/lib.php');
 require_once($CFG->libdir.'/clilib.php');
 
+// Require local library.
+require_once($CFG->dirroot.'/auth/ldap_syncplus/locallib.php');
+
 // Ensure errors are well explained
 set_debugging(DEBUG_DEVELOPER, true);
 
-if (!is_enabled_auth('ldap_syncplus')) {
-    error_log('[AUTH LDAP SYNCPLUS] '.get_string('pluginnotenabled', 'auth_ldap'));
+if (!is_enabled_auth('ldap_syncplus') && !auth_ldap_syncplus_sync_with_other_auth()) {
+        error_log('[AUTH LDAP SYNCPLUS] '.get_string('pluginnotenabled', 'auth_ldap'));
     die;
 }
 
