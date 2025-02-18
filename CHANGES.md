@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2025-04-07 - Expert feature: Allow the usage of the plugin's sync task for other auth plugins, resolves #37.
+
 ### v4.5-r3
 
 * 2025-03-31 - Deprecation: core\session\manager::kill_user_sessions has been deprecated since 4.5, resolves #41.
