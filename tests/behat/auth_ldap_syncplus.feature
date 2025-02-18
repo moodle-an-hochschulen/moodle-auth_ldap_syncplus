@@ -246,3 +246,151 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And the field "First name" matches value "User"
     And the field "Last name" matches value "01"
     And the field "Email address" matches value "user01@example.com"
+
+  Scenario Outline: The LDAP synchronization task can be re-used for creating non-LDAP users
+    Given the following config values are set as admin:
+      | config        | value      | plugin             |
+      | sync_authtype | <authtype> | auth_ldap_syncplus |
+    When I log in as "admin"
+    And I navigate to "Users > Accounts > Browse list of users" in site administration
+    And I should not see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I reload the page
+    Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I press "Edit" action in the "User 01" report row
+    And the field "Choose an authentication method" matches value "<authlabel>"
+
+    Examples:
+      | authtype      | authlabel               |
+      | ldap_syncplus | LDAP server (Sync Plus) |
+      | shibboleth    | Shibboleth              |
+
+  Scenario Outline: The LDAP synchronization task can be re-used for deleting non-LDAP users
+    Given the following config values are set as admin:
+      | config        | value      | plugin             |
+      | removeuser    | 2          | auth_ldap_syncplus |
+      | sync_authtype | <authtype> | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username | firstname | lastname | email              | auth       |
+      | user03   | User      | 03       | user03@example.com | <authtype> |
+    When I log in as "admin"
+    And I navigate to "Users > Accounts > Browse list of users" in site administration
+    And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I reload the page
+    Then I should not see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+
+    Examples:
+      | authtype      | authlabel               |
+      | ldap_syncplus | LDAP server (Sync Plus) |
+      | shibboleth    | Shibboleth              |
+
+  Scenario Outline: The LDAP synchronization task can be re-used for suspending an un-suspending non-LDAP users
+    Given the following config values are set as admin:
+      | config                         | value      | plugin             |
+      | removeuser                     | 1          | auth_ldap_syncplus |
+      | sync_script_createuser_enabled | 0          | auth_ldap_syncplus |
+      | sync_authtype                  | <authtype> | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username | firstname | lastname | email              | auth       |
+      | user03   | User      | 01       | user01@example.com | <authtype> |
+    When I log in as "admin"
+    And I navigate to "Users > Accounts > Browse list of users" in site administration
+    And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Suspended" in the "User 01" "table_row"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I reload the page
+    Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "Suspended" in the "User 01" "table_row"
+    And I press "Edit" action in the "User 01" report row
+    And I set the field "Choose an authentication method" to "manual"
+    And I press "Update profile"
+    And I press "Edit" action in the "User 01" report row
+    And I set the field "Username" to "user01"
+    And I press "Update profile"
+    And I press "Edit" action in the "User 01" report row
+    And I set the field "Choose an authentication method" to "<authtype>"
+    And I press "Update profile"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I reload the page
+    Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Suspended" in the "User 01" "table_row"
+
+    Examples:
+      | authtype      | authlabel               |
+      | ldap_syncplus | LDAP server (Sync Plus) |
+      | shibboleth    | Shibboleth              |
+
+  Scenario Outline: The LDAP synchronization task can be re-used for deleting non-LDAP users after the grace period
+    Given the following config values are set as admin:
+      | config                 | value      | plugin             |
+      | removeuser             | 3          | auth_ldap_syncplus |
+      | removeuser_graceperiod | 2          | auth_ldap_syncplus |
+      | sync_authtype          | <authtype> | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username | firstname | lastname | email              | auth       |
+      | user03   | User      | 03       | user01@example.com | <authtype> |
+    When I log in as "admin"
+    And I navigate to "Users > Accounts > Browse list of users" in site administration
+    And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Suspended" in the "User 03" "table_row"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I reload the page
+    Then I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "Suspended" in the "User 03" "table_row"
+    And I pretend the suspended user "user03" was suspended "3" days ago
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I reload the page
+    Then I should not see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+
+    Examples:
+      | authtype      | authlabel               |
+      | ldap_syncplus | LDAP server (Sync Plus) |
+      | shibboleth    | Shibboleth              |
+
+  Scenario Outline: The LDAP synchronization task can be re-used for reviving non-LDAP users within the grace period
+    Given the following config values are set as admin:
+      | config                 | value      | plugin             |
+      | removeuser             | 3          | auth_ldap_syncplus |
+      | removeuser_graceperiod | 2          | auth_ldap_syncplus |
+      | sync_authtype          | <authtype> | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username | firstname | lastname | email              | auth       |
+      | user01   | User      | 01       | user01@example.com | <authtype> |
+    When I log in as "admin"
+    And I pretend the suspended user "user01" was suspended "1" days ago
+    And I navigate to "Users > Accounts > Browse list of users" in site administration
+    And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "Suspended" in the "User 01" "table_row"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I reload the page
+    Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Suspended" in the "User 01" "table_row"
+
+    Examples:
+      | authtype      | authlabel               |
+      | ldap_syncplus | LDAP server (Sync Plus) |
+      | shibboleth    | Shibboleth              |
+
+  Scenario Outline: The LDAP synchronization task can be re-used for updating non-LDAP users
+    Given the following config values are set as admin:
+      | config        | value      | plugin             |
+      | sync_authtype | <authtype> | auth_ldap_syncplus |
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    When I log in as "admin"
+    And I navigate to "Users > Accounts > Browse list of users" in site administration
+    And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I press "Edit" action in the "User 01" report row
+    And I set the field "First name" to "Foo"
+    And I set the field "Last name" to "Bar"
+    And I press "Update profile"
+    And I should see "Foo Bar" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I run all adhoc tasks
+    And I reload the page
+    Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+
+    Examples:
+      | authtype      | authlabel               |
+      | ldap_syncplus | LDAP server (Sync Plus) |
+      | shibboleth    | Shibboleth              |

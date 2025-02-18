@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2025-04-07 - Expert feature: Allow the usage of the plugin's sync task for other auth plugins, resolves #37.
 * 2025-03-31 - Deprecation: core\session\manager::kill_user_sessions has been deprecated since 4.5, resolves #41.
 * 2025-02-17 - Bugfix: The sync task did not close the DB transaction if an invaliduserexception was thrown, adopt changes from auth_ldap in MDL-79362.
 

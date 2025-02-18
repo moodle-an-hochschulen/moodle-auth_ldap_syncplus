@@ -29,6 +29,8 @@ Moodle core's auth_ldap authentication plugin is a great basis for authenticatin
 
 * It adds several line breaks to the output of the LDAP synchronization task to improve readability (MDL-30589).
 
+* It adds the possibility to sync Moodle users who login with other authentication types like Shibboleth from LDAP anyway.
+
 
 Installation
 ------------
