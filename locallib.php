@@ -23,3 +23,15 @@
  */
 
 define('AUTH_REMOVEUSER_DELETEWITHGRACEPERIOD', 3);
+
+/**
+ * Helper function to check if the plugin's scheduled tasks should be used to sync users with another auth type plugin.
+ *
+ * @return bool
+ */
+function auth_ldap_syncplus_sync_with_other_auth() {
+    // Do the check.
+    $otherauth = (get_config('auth_ldap_syncplus', 'sync_authtype') != 'ldap_syncplus');
+
+    return $otherauth;
+}

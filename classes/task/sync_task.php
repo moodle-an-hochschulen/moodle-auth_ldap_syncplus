@@ -38,6 +38,18 @@ class sync_task extends \core\task\scheduled_task {
     protected const MTRACE_MSG = 'Synced LDAP (Sync Plus) users';
 
     /**
+     * Constructor.
+     */
+    public function __construct() {
+        global $CFG;
+
+        // Require local library.
+        require_once($CFG->dirroot.'/auth/ldap_syncplus/locallib.php');
+
+        // No need to call parent constructor as it does not exist.
+    }
+
+    /**
      * Return localised task name.
      *
      * @return string
@@ -47,12 +59,22 @@ class sync_task extends \core\task\scheduled_task {
     }
 
     /**
+     * We want this scheduled task to run, even if the component is disabled.
+     *
+     * @return bool
+     */
+    public function get_run_if_component_disabled() {
+
+        return auth_ldap_syncplus_sync_with_other_auth();
+    }
+
+    /**
      * Execute scheduled task
      *
      * @return boolean
      */
     public function execute() {
-        if (is_enabled_auth('ldap_syncplus')) {
+        if (is_enabled_auth('ldap_syncplus') || auth_ldap_syncplus_sync_with_other_auth()) {
             /** @var auth_plugin_ldap_syncplus $auth */
             $auth = get_auth_plugin('ldap_syncplus');
             $count = 0;

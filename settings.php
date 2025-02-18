@@ -360,4 +360,20 @@ if ($ADMIN->fulltree) {
     $help .= get_string('auth_updateremote_ldap', 'auth');
     display_auth_lock_options($settings, $authplugin->authtype, $authplugin->userfields,
             $help, true, true, $authplugin->get_custom_user_profile_fields());
+
+    if (function_exists('ldap_connect')) {
+        // Danger zone header.
+        $settings->add(new admin_setting_heading('auth_ldap_syncplus/dangerzone',
+                new lang_string('dangerzone', 'auth_ldap_syncplus'),
+                new lang_string('dangerzone_desc', 'auth_ldap_syncplus')));
+
+        // Moodle authentication type when synchronizing users.
+        $moodleauthtypeoptions = [];
+        foreach (core_component::get_plugin_list('auth') as $auth => $unused) {
+            $moodleauthtypeoptions[$auth] = get_string('pluginname', 'auth_'.$auth);
+        }
+        $settings->add(new admin_setting_configselect('auth_ldap_syncplus/sync_authtype',
+                new lang_string('sync_authtype', 'auth_ldap_syncplus'),
+                new lang_string('sync_authtype_desc', 'auth_ldap_syncplus'), 'ldap_syncplus', $moodleauthtypeoptions));
+    }
 }
