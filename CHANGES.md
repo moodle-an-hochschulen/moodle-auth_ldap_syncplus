@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2025-02-18 - Expert feature: Allow the usage of the plugin's sync task for other auth plugins, resolves #37.
 * 2025-02-17 - Bugfix: The sync task did not close the DB transaction if an invaliduserexception was thrown, adopt changes from auth_ldap in MDL-79362.
 
 ### v4.5-r2
