@@ -39,4 +39,4 @@ Manual tests
 Visual checks
 -------------
 
-* There aren't any additional visual checks in the Moodle GUI needed to upgrade this theme.
+* There aren't any additional visual checks in the Moodle GUI needed to upgrade this plugin.
