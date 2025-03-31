@@ -240,7 +240,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                         $updateuser->suspended = 1;
                         user_update_user($updateuser, false);
                         mtrace("\t".get_string('auth_dbsuspenduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
-                        \core\session\manager::destroy_user_sessions($user->id);;
+                        \core\session\manager::destroy_user_sessions($user->id);
                     }
                 } else {
                     mtrace(get_string('nouserentriestoremove', 'auth_ldap'));
@@ -323,7 +323,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     $updateuser->timemodified = time(); // Remember suspend time, abuse timemodified column for this.
                     user_update_user($updateuser, false);
                     mtrace("\t".get_string('auth_dbsuspenduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
-                    \core\session\manager::kill_user_sessions($user->id);
+                    \core\session\manager::destroy_user_sessions($user->id);
                 }
             } else {
                 mtrace(get_string('nouserentriestosuspend', 'auth_ldap_syncplus'));
