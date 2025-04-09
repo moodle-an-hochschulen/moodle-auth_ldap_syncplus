@@ -16,7 +16,7 @@ uid: user01
 cn: User 01
 givenName: User
 sn: 01
-mail: user01@example.com
+mail: user01@example.org
 userPassword: password1
 objectClass: InetOrgPerson
 
@@ -26,6 +26,31 @@ uid: user02
 cn: User 02
 givenName: User
 sn: 02
-mail: user02@example.com
+mail: user02@example.org
+userPassword: password2
+objectClass: InetOrgPerson
+
+# Organizational Unit
+dn: ou=scoped,dc=example,dc=org
+objectClass: organizationalUnit
+ou: scoped
+
+# user11 entry
+dn: uid=user11@example.org,ou=scoped,dc=example,dc=org
+uid: user11
+cn: User 11
+givenName: User
+sn: 11
+mail: user11@example.org
+userPassword: password1
+objectClass: InetOrgPerson
+
+# user12 entry
+dn: uid=user12@example.org,ou=scoped,dc=example,dc=org
+uid: user12
+cn: User 12
+givenName: User
+sn: 12
+mail: user12@example.org
 userPassword: password2
 objectClass: InetOrgPerson

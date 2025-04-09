@@ -46,7 +46,7 @@ jobs:
           path: bitnami-container
 
       - name: Start Bitnami LDAP
-        uses: adambirds/docker-compose-action@v1.4.0
+        uses: adambirds/docker-compose-action@v1.5.0
         with:
           compose-file: ${{ github.workspace }}/bitnami-container/tests/fixtures/bitnami-openldap-docker-compose.yaml
 

@@ -47,8 +47,8 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     # user01 exists in the LDAP server, user03 does not.
     And the following "users" exist:
       | username | firstname | lastname | email              | auth          |
-      | user01   | User      | 01       | user01@example.com | ldap_syncplus |
-      | user03   | User      | 03       | user03@example.com | ldap_syncplus |
+      | user01   | User      | 01       | user01@example.org | ldap_syncplus |
+      | user03   | User      | 03       | user03@example.org | ldap_syncplus |
     When I log in as "admin"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
@@ -76,8 +76,8 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And the following "users" exist:
       # user01 and user02 exist in the LDAP server.
       | username | firstname | lastname | email              | auth          |
-      | user01   | User      | 01       | user01@example.com | ldap_syncplus |
-      | user02   | User      | 02       | user02@example.com | ldap_syncplus |
+      | user01   | User      | 01       | user01@example.org | ldap_syncplus |
+      | user02   | User      | 02       | user02@example.org | ldap_syncplus |
     When I log in as "admin"
     And I pretend the suspended user "user02" was suspended "1" days ago
     And I navigate to "Users > Accounts > Browse list of users" in site administration
@@ -99,8 +99,8 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     # user01 exists in the LDAP server, user03 does not.
     And the following "users" exist:
       | username | firstname | lastname | email              | auth          |
-      | user01   | User      | 01       | user01@example.com | ldap_syncplus |
-      | user03   | User      | 03       | user03@example.com | ldap_syncplus |
+      | user01   | User      | 01       | user01@example.org | ldap_syncplus |
+      | user03   | User      | 03       | user03@example.org | ldap_syncplus |
     When I log in as "admin"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
@@ -121,8 +121,8 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And the following "users" exist:
       # user01 and user02 exist in the LDAP server.
       | username | firstname | lastname | email              | auth          |
-      | user01   | User      | 01       | user01@example.com | ldap_syncplus |
-      | user02   | User      | 02       | user02@example.com | ldap_syncplus |
+      | user01   | User      | 01       | user01@example.org | ldap_syncplus |
+      | user02   | User      | 02       | user02@example.org | ldap_syncplus |
     When I log in as "admin"
     And I pretend the suspended user "user02" was suspended "1" days ago
     And I navigate to "Users > Accounts > Browse list of users" in site administration
@@ -144,8 +144,8 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     # user01 exists in the LDAP server, user03 does not.
     And the following "users" exist:
       | username | firstname | lastname | email              | auth          |
-      | user01   | User      | 01       | user01@example.com | ldap_syncplus |
-      | user03   | User      | 03       | user03@example.com | ldap_syncplus |
+      | user01   | User      | 01       | user01@example.org | ldap_syncplus |
+      | user03   | User      | 03       | user03@example.org | ldap_syncplus |
     When I log in as "admin"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
@@ -188,7 +188,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | Choose an authentication method | ldap_syncplus |
       | First name                      | Foo           |
       | Last name                       | Bar           |
-      | Email address                   | foo@bar.com   |
+      | Email address                   | foo@bar.org   |
       | New password                    | Hello!123     |
     And I press "Create user"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
@@ -197,14 +197,14 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And the field "Username" matches value "user01"
     And the field "First name" matches value "User"
     And the field "Last name" matches value "01"
-    And the field "Email address" matches value "user01@example.com"
+    And the field "Email address" matches value "user01@example.org"
 
   Scenario: First login via email should be possible without an existing Moodle account
     Given the following config values are set as admin:
       | config            | value |
       | authloginviaemail | 1     |
     When I follow "Log in"
-    And I set the field "Username" to "user01@example.com"
+    And I set the field "Username" to "user01@example.org"
     And I set the field "Password" to "password1"
     And I press "Log in"
     Then I should see "Welcome, User"
@@ -222,7 +222,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     Given the following "users" exist:
       # user01 exists in the LDAP server.
       | username | firstname | lastname | email              | auth          |
-      | user01   | User      | 01       | user01@example.com | ldap_syncplus |
+      | user01   | User      | 01       | user01@example.org | ldap_syncplus |
     When I log in as "admin"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
@@ -231,7 +231,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I set the following fields to these values:
       | First name    | Foo         |
       | Last name     | Bar         |
-      | Email address | foo@bar.com |
+      | Email address | foo@bar.org |
     And I press "Update profile"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     And I should not see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
@@ -245,34 +245,43 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And the field "Username" matches value "user01"
     And the field "First name" matches value "User"
     And the field "Last name" matches value "01"
-    And the field "Email address" matches value "user01@example.com"
+    And the field "Email address" matches value "user01@example.org"
+
+  # From here on, we are testing the LDAP synchronization task with non-LDAP users.
 
   Scenario Outline: The LDAP synchronization task can be re-used for creating non-LDAP users
     Given the following config values are set as admin:
-      | config        | value      | plugin             |
-      | sync_authtype | <authtype> | auth_ldap_syncplus |
+      | config        | value                          | plugin             |
+      | contexts      | ou=<context>,dc=example,dc=org | auth_ldap_syncplus |
+      | sync_authtype | <authtype>                     | auth_ldap_syncplus |
+      | sync_scope    | <scope>                        | auth_ldap_syncplus |
     When I log in as "admin"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
-    And I should not see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "User <user1number>" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
-    Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
-    And I press "Edit" action in the "User 01" report row
+    Then I should see "User <user1number>" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I press "Edit" action in the "User <user1number>" report row
     And the field "Choose an authentication method" matches value "<authlabel>"
+    And the field "Username" matches value "user<user1number><scope>"
 
     Examples:
-      | authtype      | authlabel               |
-      | ldap_syncplus | LDAP server (Sync Plus) |
-      | shibboleth    | Shibboleth              |
+      | authtype      | authlabel               | context    | scope        | user1number |
+      | ldap_syncplus | LDAP server (Sync Plus) | department |              | 01          |
+      | shibboleth    | Shibboleth              | department |              | 01          |
+      | shibboleth    | Shibboleth              | scoped     |              | 11          |
+      | shibboleth    | Shibboleth              | scoped     | @example.org | 11          |
 
   Scenario Outline: The LDAP synchronization task can be re-used for deleting non-LDAP users
     Given the following config values are set as admin:
-      | config        | value      | plugin             |
-      | removeuser    | 2          | auth_ldap_syncplus |
-      | sync_authtype | <authtype> | auth_ldap_syncplus |
+      | config        | value                          | plugin             |
+      | contexts      | ou=<context>,dc=example,dc=org | auth_ldap_syncplus |
+      | removeuser    | 2                              | auth_ldap_syncplus |
+      | sync_authtype | <authtype>                     | auth_ldap_syncplus |
+      | sync_scope    | <scope>                        | auth_ldap_syncplus |
     And the following "users" exist:
-      | username | firstname | lastname | email              | auth       |
-      | user03   | User      | 03       | user03@example.com | <authtype> |
+      | username      | firstname | lastname | email              | auth       |
+      | user03<scope> | User      | 03       | user03@example.org | <authtype> |
     When I log in as "admin"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
@@ -281,55 +290,22 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     Then I should not see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
 
     Examples:
-      | authtype      | authlabel               |
-      | ldap_syncplus | LDAP server (Sync Plus) |
-      | shibboleth    | Shibboleth              |
+      | authtype      | authlabel               | context    | scope        |
+      | ldap_syncplus | LDAP server (Sync Plus) | department |              |
+      | shibboleth    | Shibboleth              | department |              |
+      | shibboleth    | Shibboleth              | scoped     |              |
+      | shibboleth    | Shibboleth              | scoped     | @example.org |
 
-  Scenario Outline: The LDAP synchronization task can be re-used for suspending an un-suspending non-LDAP users
+  Scenario Outline: The LDAP synchronization task can be re-used for suspending non-LDAP users
     Given the following config values are set as admin:
-      | config                         | value      | plugin             |
-      | removeuser                     | 1          | auth_ldap_syncplus |
-      | sync_script_createuser_enabled | 0          | auth_ldap_syncplus |
-      | sync_authtype                  | <authtype> | auth_ldap_syncplus |
+      | config        | value                          | plugin             |
+      | contexts      | ou=<context>,dc=example,dc=org | auth_ldap_syncplus |
+      | removeuser    | 1                              | auth_ldap_syncplus |
+      | sync_authtype | <authtype>                     | auth_ldap_syncplus |
+      | sync_scope    | <scope>                        | auth_ldap_syncplus |
     And the following "users" exist:
-      | username | firstname | lastname | email              | auth       |
-      | user03   | User      | 01       | user01@example.com | <authtype> |
-    When I log in as "admin"
-    And I navigate to "Users > Accounts > Browse list of users" in site administration
-    And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
-    And I should not see "Suspended" in the "User 01" "table_row"
-    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
-    And I reload the page
-    Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
-    And I should see "Suspended" in the "User 01" "table_row"
-    And I press "Edit" action in the "User 01" report row
-    And I set the field "Choose an authentication method" to "manual"
-    And I press "Update profile"
-    And I press "Edit" action in the "User 01" report row
-    And I set the field "Username" to "user01"
-    And I press "Update profile"
-    And I press "Edit" action in the "User 01" report row
-    And I set the field "Choose an authentication method" to "<authtype>"
-    And I press "Update profile"
-    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
-    And I reload the page
-    Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
-    And I should not see "Suspended" in the "User 01" "table_row"
-
-    Examples:
-      | authtype      | authlabel               |
-      | ldap_syncplus | LDAP server (Sync Plus) |
-      | shibboleth    | Shibboleth              |
-
-  Scenario Outline: The LDAP synchronization task can be re-used for deleting non-LDAP users after the grace period
-    Given the following config values are set as admin:
-      | config                 | value      | plugin             |
-      | removeuser             | 3          | auth_ldap_syncplus |
-      | removeuser_graceperiod | 2          | auth_ldap_syncplus |
-      | sync_authtype          | <authtype> | auth_ldap_syncplus |
-    And the following "users" exist:
-      | username | firstname | lastname | email              | auth       |
-      | user03   | User      | 03       | user01@example.com | <authtype> |
+      | username      | firstname | lastname | email              | auth       |
+      | user03<scope> | User      | 03       | user03@example.org | <authtype> |
     When I log in as "admin"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
@@ -338,49 +314,113 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I reload the page
     Then I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should see "Suspended" in the "User 03" "table_row"
-    And I pretend the suspended user "user03" was suspended "3" days ago
+
+    Examples:
+      | authtype      | authlabel               | context    | scope        |
+      | ldap_syncplus | LDAP server (Sync Plus) | department |              |
+      | shibboleth    | Shibboleth              | department |              |
+      | shibboleth    | Shibboleth              | scoped     |              |
+      | shibboleth    | Shibboleth              | scoped     | @example.org |
+
+  Scenario Outline: The LDAP synchronization task can be re-used for un-suspending non-LDAP users
+    Given the following config values are set as admin:
+      | config                         | value                          | plugin             |
+      | contexts                       | ou=<context>,dc=example,dc=org | auth_ldap_syncplus |
+      | removeuser                     | 1                              | auth_ldap_syncplus |
+      | sync_script_createuser_enabled | 0                              | auth_ldap_syncplus |
+      | sync_authtype                  | <authtype>                     | auth_ldap_syncplus |
+      | sync_scope                     | <scope>                        | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username                 | firstname | lastname      | email                         | auth       |
+      | user<user1number><scope> | User      | <user1number> | user<user1number>@example.org | <authtype> |
+    When I log in as "admin"
+    And I pretend the suspended user "user<user1number><scope>" was suspended "1" days ago
+    And I navigate to "Users > Accounts > Browse list of users" in site administration
+    And I should see "User <user1number>" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "Suspended" in the "User <user1number>" "table_row"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I reload the page
+    Then I should see "User <user1number>" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Suspended" in the "User <user1number>" "table_row"
+
+    Examples:
+      | authtype      | authlabel               | context    | scope        | user1number |
+      | ldap_syncplus | LDAP server (Sync Plus) | department |              | 01          |
+      | shibboleth    | Shibboleth              | department |              | 01          |
+      | shibboleth    | Shibboleth              | scoped     |              | 11          |
+      | shibboleth    | Shibboleth              | scoped     | @example.org | 11          |
+
+  Scenario Outline: The LDAP synchronization task can be re-used for deleting non-LDAP users after the grace period
+    Given the following config values are set as admin:
+      | config                 | value                          | plugin             |
+      | contexts               | ou=<context>,dc=example,dc=org | auth_ldap_syncplus |
+      | removeuser             | 3                              | auth_ldap_syncplus |
+      | removeuser_graceperiod | 2                              | auth_ldap_syncplus |
+      | sync_authtype          | <authtype>                     | auth_ldap_syncplus |
+      | sync_scope             | <scope>                        | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username      | firstname | lastname | email              | auth       |
+      | user03<scope> | User      | 03       | user01@example.org | <authtype> |
+    When I log in as "admin"
+    And I navigate to "Users > Accounts > Browse list of users" in site administration
+    And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Suspended" in the "User 03" "table_row"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I reload the page
+    Then I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "Suspended" in the "User 03" "table_row"
+    And I pretend the suspended user "user03<scope>" was suspended "3" days ago
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
     Then I should not see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
 
     Examples:
-      | authtype      | authlabel               |
-      | ldap_syncplus | LDAP server (Sync Plus) |
-      | shibboleth    | Shibboleth              |
+      | authtype      | authlabel               | context    | scope        |
+      | ldap_syncplus | LDAP server (Sync Plus) | department |              |
+      | shibboleth    | Shibboleth              | department |              |
+      | shibboleth    | Shibboleth              | scoped     |              |
+      | shibboleth    | Shibboleth              | scoped     | @example.org |
 
   Scenario Outline: The LDAP synchronization task can be re-used for reviving non-LDAP users within the grace period
     Given the following config values are set as admin:
-      | config                 | value      | plugin             |
-      | removeuser             | 3          | auth_ldap_syncplus |
-      | removeuser_graceperiod | 2          | auth_ldap_syncplus |
-      | sync_authtype          | <authtype> | auth_ldap_syncplus |
+      | config                         | value                          | plugin             |
+      | contexts                       | ou=<context>,dc=example,dc=org | auth_ldap_syncplus |
+      | removeuser                     | 3                              | auth_ldap_syncplus |
+      | removeuser_graceperiod         | 2                              | auth_ldap_syncplus |
+      | sync_script_createuser_enabled | 0                              | auth_ldap_syncplus |
+      | sync_authtype                  | <authtype>                     | auth_ldap_syncplus |
+      | sync_scope                     | <scope>                        | auth_ldap_syncplus |
     And the following "users" exist:
-      | username | firstname | lastname | email              | auth       |
-      | user01   | User      | 01       | user01@example.com | <authtype> |
+      | username                 | firstname | lastname      | email                         | auth       |
+      | user<user1number><scope> | User      | <user1number> | user<user1number>@example.org | <authtype> |
     When I log in as "admin"
-    And I pretend the suspended user "user01" was suspended "1" days ago
+    And I pretend the suspended user "user<user1number><scope>" was suspended "1" days ago
     And I navigate to "Users > Accounts > Browse list of users" in site administration
-    And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
-    And I should see "Suspended" in the "User 01" "table_row"
+    And I should see "User <user1number>" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "Suspended" in the "User <user1number>" "table_row"
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
-    Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
-    And I should not see "Suspended" in the "User 01" "table_row"
+    Then I should see "User <user1number>" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Suspended" in the "User <user1number>" "table_row"
 
     Examples:
-      | authtype      | authlabel               |
-      | ldap_syncplus | LDAP server (Sync Plus) |
-      | shibboleth    | Shibboleth              |
+      | authtype      | authlabel               | context    | scope        | user1number |
+      | ldap_syncplus | LDAP server (Sync Plus) | department |              | 01          |
+      | shibboleth    | Shibboleth              | department |              | 01          |
+      | shibboleth    | Shibboleth              | scoped     |              | 11          |
+      | shibboleth    | Shibboleth              | scoped     | @example.org | 11          |
 
   Scenario Outline: The LDAP synchronization task can be re-used for updating non-LDAP users
     Given the following config values are set as admin:
-      | config        | value      | plugin             |
-      | sync_authtype | <authtype> | auth_ldap_syncplus |
+      | config        | value                          | plugin             |
+      | contexts      | ou=<context>,dc=example,dc=org | auth_ldap_syncplus |
+      | sync_authtype | <authtype>                     | auth_ldap_syncplus |
+      | sync_scope    | <scope>                        | auth_ldap_syncplus |
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     When I log in as "admin"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
-    And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
-    And I press "Edit" action in the "User 01" report row
+    And I should see "User <user1number>" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I press "Edit" action in the "User <user1number>" report row
     And I set the field "First name" to "Foo"
     And I set the field "Last name" to "Bar"
     And I press "Update profile"
@@ -388,9 +428,11 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I run all adhoc tasks
     And I reload the page
-    Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
+    Then I should see "User <user1number>" in the "[data-region='report-user-list-wrapper']" "css_element"
 
     Examples:
-      | authtype      | authlabel               |
-      | ldap_syncplus | LDAP server (Sync Plus) |
-      | shibboleth    | Shibboleth              |
+      | authtype      | authlabel               | context    | scope        | user1number |
+      | ldap_syncplus | LDAP server (Sync Plus) | department |              | 01          |
+      | shibboleth    | Shibboleth              | department |              | 01          |
+      | shibboleth    | Shibboleth              | scoped     |              | 11          |
+      | shibboleth    | Shibboleth              | scoped     | @example.org | 11          |

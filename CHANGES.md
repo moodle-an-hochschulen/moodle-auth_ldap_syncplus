@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2025-04-07 - Expert feature: Allow the admin to set a scope for the username within the sync task, resolves #38.
 * 2025-04-07 - Expert feature: Allow the usage of the plugin's sync task for other auth plugins, resolves #37.
 
 ### v4.5-r3
