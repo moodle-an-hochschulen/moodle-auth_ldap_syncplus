@@ -218,6 +218,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                             mtrace("\t".get_string('auth_dbdeleteusererror', 'auth_db', $user->username));
                         }
                     }
+
+                    mtrace(get_string('userentriestoremovedone', 'auth_ldap_syncplus', count($remove_users)));
                 } else {
                     mtrace(get_string('nouserentriestoremove', 'auth_ldap'));
                 }
@@ -246,6 +248,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                         mtrace("\t".get_string('auth_dbsuspenduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                         \core\session\manager::destroy_user_sessions($user->id);
                     }
+
+                    mtrace(get_string('userentriestoremovedone', 'auth_ldap_syncplus', count($remove_users)));
                 } else {
                     mtrace(get_string('nouserentriestoremove', 'auth_ldap'));
                 }
@@ -272,6 +276,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                         user_update_user($updateuser, false);
                         mtrace("\t".get_string('auth_dbreviveduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                     }
+
+                    mtrace(get_string('userentriestorevivedone', 'auth_ldap_syncplus', count($revive_users)));
                 } else {
                     mtrace(get_string('nouserentriestorevive', 'auth_ldap'));
                 }
@@ -302,6 +308,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     user_update_user($updateuser, false);
                     mtrace("\t".get_string('auth_dbreviveduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                 }
+
+                mtrace(get_string('userentriestorevivedone', 'auth_ldap_syncplus', count($revive_users)));
             } else {
                 mtrace(get_string('nouserentriestorevive', 'auth_ldap'));
             }
@@ -331,6 +339,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     mtrace("\t".get_string('auth_dbsuspenduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                     \core\session\manager::destroy_user_sessions($user->id);
                 }
+
+                mtrace(get_string('userentriestosuspenddone', 'auth_ldap_syncplus', count($remove_users)));
             } else {
                 mtrace(get_string('nouserentriestosuspend', 'auth_ldap_syncplus'));
             }
@@ -365,6 +375,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                         mtrace("\t".get_string('waitinginremovalqueue', 'auth_ldap_syncplus', array('days'=>$graceperiod, 'name'=>$user->username, 'id'=>$user->id)));
                     }
                 }
+
+                mtrace(get_string('userentriestoremovedone', 'auth_ldap_syncplus', count($remove_users)));
             } else {
                 mtrace(get_string('nouserentriestoremove', 'auth_ldap'));
             }
@@ -473,6 +485,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     mtrace(get_string('invalidusererrors', 'auth_ldap', $errors));
                 }
 
+                mtrace(get_string('userentriestoadddone', 'auth_ldap_syncplus', count($add_users)));
+
                 unset($add_users); // free mem
             } else {
                 mtrace(get_string('nouserstobeadded', 'auth_ldap'));
@@ -515,6 +529,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             $this->sync_roles($user);
             $transaction->allow_commit();
         }
+
+        mtrace(get_string('userentriestoupdatedone', 'auth_ldap_syncplus', count($users)));
     }
 
     /**
