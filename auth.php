@@ -200,7 +200,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             if ($this->config->removeuser == AUTH_REMOVEUSER_FULLDELETE) {
                 $sql = "SELECT u.*
                           FROM {user} u
-                     LEFT JOIN {tmp_extuser} e ON (u.username = e.username AND u.mnethostid = e.mnethostid)
+                     LEFT JOIN {tmp_extuser} e ON (u.username = (".$this->get_sync_scope_sql_joinon_snippet('e.username').")
+                            AND u.mnethostid = e.mnethostid)
                          WHERE u.auth = :auth
                                AND u.deleted = 0
                                AND e.username IS NULL";
@@ -224,7 +225,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             } else if ($this->config->removeuser == AUTH_REMOVEUSER_SUSPEND) {
                 $sql = "SELECT u.*
                           FROM {user} u
-                     LEFT JOIN {tmp_extuser} e ON (u.username = e.username AND u.mnethostid = e.mnethostid)
+                     LEFT JOIN {tmp_extuser} e ON (u.username = (".$this->get_sync_scope_sql_joinon_snippet('e.username').")
+                            AND u.mnethostid = e.mnethostid)
                          WHERE u.auth = :auth
                                AND u.deleted = 0
                                AND u.suspended = 0
@@ -252,7 +254,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             if (!empty($this->config->removeuser) and $this->config->removeuser == AUTH_REMOVEUSER_SUSPEND) {
                 $sql = "SELECT u.id, u.username
                           FROM {user} u
-                          JOIN {tmp_extuser} e ON (u.username = e.username AND u.mnethostid = e.mnethostid)
+                          JOIN {tmp_extuser} e ON (u.username = (".$this->get_sync_scope_sql_joinon_snippet('e.username').")
+                                AND u.mnethostid = e.mnethostid)
                          WHERE (u.auth = 'nologin' OR (u.auth = ? AND u.suspended = 1)) AND u.deleted = 0";
                 // Note: 'nologin' is there for backwards compatibility.
                 $revive_users = $DB->get_records_sql($sql, array($this->config->sync_authtype));
@@ -282,7 +285,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             // Revive suspended users.
             $sql = "SELECT u.id, u.username
                       FROM {user} u
-                      JOIN {tmp_extuser} e ON (u.username = e.username AND u.mnethostid = e.mnethostid)
+                      JOIN {tmp_extuser} e ON (u.username = (".$this->get_sync_scope_sql_joinon_snippet('e.username').")
+                            AND u.mnethostid = e.mnethostid)
                      WHERE (u.auth = 'nologin' OR (u.auth = ? AND u.suspended = 1)) AND u.deleted = 0";
             // Note: 'nologin' is there for backwards compatibility.
             $revive_users = $DB->get_records_sql($sql, array($this->config->sync_authtype));
@@ -306,7 +310,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             // User temporary suspending.
             $sql = "SELECT u.*
                       FROM {user} u
-                 LEFT JOIN {tmp_extuser} e ON (u.username = e.username AND u.mnethostid = e.mnethostid)
+                 LEFT JOIN {tmp_extuser} e ON (u.username = (".$this->get_sync_scope_sql_joinon_snippet('e.username').")
+                        AND u.mnethostid = e.mnethostid)
                      WHERE u.auth = :auth
                            AND u.deleted = 0
                            AND u.suspended = 0
@@ -333,7 +338,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             // User complete removal.
             $sql = "SELECT u.*
                       FROM {user} u
-                 LEFT JOIN {tmp_extuser} e ON (u.username = e.username AND u.mnethostid = e.mnethostid)
+                 LEFT JOIN {tmp_extuser} e ON (u.username = (".$this->get_sync_scope_sql_joinon_snippet('e.username').")
+                        AND u.mnethostid = e.mnethostid)
                      WHERE u.auth = :auth
                            AND u.deleted = 0
                            AND e.username IS NULL";
@@ -391,7 +397,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         if (!empty($this->config->sync_script_createuser_enabled) and $this->config->sync_script_createuser_enabled == 1) {
             $sql = 'SELECT e.id, e.username
                       FROM {tmp_extuser} e
-                      LEFT JOIN {user} u ON (e.username = u.username AND e.mnethostid = u.mnethostid)
+                      LEFT JOIN {user} u ON (('.$this->get_sync_scope_sql_joinon_snippet('e.username').') = u.username
+                            AND e.mnethostid = u.mnethostid)
                      WHERE u.id IS NULL';
             $add_users = $DB->get_records_sql($sql);
 
@@ -401,6 +408,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
                 foreach ($add_users as $user) {
                     $transaction = $DB->start_delegated_transaction();
+
+                    // Get the user.
                     $user = $this->get_userinfo_asobj($user->username);
 
                     // Prep a few params.
@@ -421,6 +430,9 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     if (empty($user->calendartype)) {
                         $user->calendartype = $CFG->calendartype;
                     }
+
+                    // Add the scope to the username for adding the user in the DB.
+                    $user->username = $this->add_scope_to_username($user->username);
 
                     // $id = user_create_user($user, false);
                     try {
@@ -482,7 +494,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             $transaction = $DB->start_delegated_transaction();
             echo "\t";
             print_string('auth_dbupdatinguser', 'auth_db', ['name' => $user->username, 'id' => $user->id]);
-            $userinfo = $this->get_userinfo($user->username);
+            $userinfo = $this->get_userinfo($this->strip_scope_from_username($user->username));
             if (!$this->update_user_record($user->username, $updatekeys, true,
                     $this->is_user_suspended((object) $userinfo))) {
                 echo ' - '.get_string('skipped');
@@ -620,5 +632,58 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             parent::loginpage_hook(); // Call parent function to retain its functionality.
             return;
         }
+    }
+
+    /**
+     * Helper function to get the SQL snippet for the sync scope JOIN ON clause, if configured.
+     *
+     * @param string $userfield The userfield name
+     * @return string
+     */
+    private function get_sync_scope_sql_joinon_snippet($userfield): string {
+        global $DB;
+
+        // If the sync auth method is still LDAP SyncPlus or if no sync scope is configured, return the userfield name as is.
+        if ($this->config->sync_authtype == 'ldap_syncplus' || empty($this->config->sync_scope)) {
+            return $userfield;
+        }
+
+        // If a sync scope is configured, we need to concat it to the userfield.
+        $scopesql = $DB->sql_concat($userfield, "'".$this->config->sync_scope."'");
+
+        // Return the SQL fragment.
+        return $scopesql;
+    }
+
+    /**
+     * Helper function to strip the sync scope from the username.
+     *
+     * @param string $username
+     * @return string
+     */
+    private function strip_scope_from_username(string $username): string {
+        // If the sync auth method is still LDAP SyncPlus or if no sync scope is configured, return the username as is.
+        if ($this->config->sync_authtype == 'ldap_syncplus' || empty($this->config->sync_scope)) {
+            return $username;
+        }
+
+        // If a sync scope is configured, we need to strip it from the username.
+        return str_replace($this->config->sync_scope, '', $username);
+    }
+
+    /**
+     * Helper function to add the sync scope to the username, if configured.
+     *
+     * @param string $username
+     * @return string
+     */
+    private function add_scope_to_username(string $username): string {
+        // If the sync auth method is still LDAP SyncPlus or if no sync scope is configured, return the username as is.
+        if ($this->config->sync_authtype == 'ldap_syncplus' || empty($this->config->sync_scope)) {
+            return $username;
+        }
+
+        // If a sync scope is configured, we need to add it to the username.
+        return $username . $this->config->sync_scope;
     }
 }
