@@ -375,5 +375,15 @@ if ($ADMIN->fulltree) {
         $settings->add(new admin_setting_configselect('auth_ldap_syncplus/sync_authtype',
                 new lang_string('sync_authtype', 'auth_ldap_syncplus'),
                 new lang_string('sync_authtype_desc', 'auth_ldap_syncplus'), 'ldap_syncplus', $moodleauthtypeoptions));
+
+        // LDAP username scope.
+        $scopenotification = new \core\output\notification(get_string('sync_scope_note', 'auth_ldap_syncplus'),
+                \core\output\notification::NOTIFY_WARNING);
+        $scopenotification->set_show_closebutton(false);
+        $description = get_string('sync_scope_desc', 'auth_ldap_syncplus').'<br />'.$OUTPUT->render($scopenotification);
+        $settings->add(new auth_ldap_admin_setting_special_lowercase_configtext('auth_ldap_syncplus/sync_scope',
+                get_string('sync_scope', 'auth_ldap_syncplus', null, true),
+                $description, '', PARAM_RAW_TRIMMED));
+        $settings->hide_if('auth_ldap_syncplus/sync_scope', 'auth_ldap_syncplus/sync_authtype', 'eq', 'ldap_syncplus');
     }
 }
