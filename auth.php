@@ -204,7 +204,9 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                          WHERE u.auth = :auth
                                AND u.deleted = 0
                                AND e.username IS NULL";
-                $remove_users = $DB->get_records_sql($sql, array('auth'=>$this->config->sync_authtype));
+                $sql .= $this->get_sync_scope_sql_snippet();
+                $remove_users = $DB->get_records_sql($sql, array('auth'=>$this->config->sync_authtype,
+                        'scope' => $DB->sql_like_escape($this->config->sync_scope)));
 
                 if (!empty($remove_users)) {
                     mtrace(get_string('userentriestoremove', 'auth_ldap', count($remove_users)));
@@ -229,7 +231,9 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                                AND u.deleted = 0
                                AND u.suspended = 0
                                AND e.username IS NULL";
-                $remove_users = $DB->get_records_sql($sql, array('auth'=>$this->config->sync_authtype));
+                $sql .= $this->get_sync_scope_sql_snippet();
+                $remove_users = $DB->get_records_sql($sql, array('auth'=>$this->config->sync_authtype,
+                        'scope' => $DB->sql_like_escape($this->config->sync_scope)));
 
                 if (!empty($remove_users)) {
                     mtrace(get_string('userentriestoremove', 'auth_ldap', count($remove_users)));
@@ -311,7 +315,9 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                            AND u.deleted = 0
                            AND u.suspended = 0
                            AND e.username IS NULL";
-            $remove_users = $DB->get_records_sql($sql, array('auth'=>$this->config->sync_authtype));
+            $sql .= $this->get_sync_scope_sql_snippet();
+            $remove_users = $DB->get_records_sql($sql, array('auth'=>$this->config->sync_authtype,
+                    'scope' => $DB->sql_like_escape($this->config->sync_scope)));
 
             if (!empty($remove_users)) {
                 mtrace(get_string('userentriestosuspend', 'auth_ldap_syncplus', count($remove_users)));
@@ -337,7 +343,9 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                      WHERE u.auth = :auth
                            AND u.deleted = 0
                            AND e.username IS NULL";
-            $remove_users = $DB->get_records_sql($sql, array('auth'=>$this->config->sync_authtype));
+            $sql .= $this->get_sync_scope_sql_snippet();
+            $remove_users = $DB->get_records_sql($sql, array('auth'=>$this->config->sync_authtype,
+                    'scope' => $DB->sql_like_escape($this->config->sync_scope)));
 
             if (!empty($remove_users)) {
                 mtrace(get_string('userentriestoremove', 'auth_ldap', count($remove_users)));
@@ -401,7 +409,21 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
                 foreach ($add_users as $user) {
                     $transaction = $DB->start_delegated_transaction();
+
+                    // Remove the scope to find the user in LDAP and retrieve the user attributes.
+                    $user->username = $this->strip_scope_from_username($user->username);
+
+                    // Security net.
+                    if (!empty($this->config->scope) && (empty($user->username)) || ($user->username == $this->config->scope)) {
+                        mtrace("\t".get_string('sync_scope_useradderror', 'auth_ldap_syncplus', $user->username));
+                        continue;
+                    }
+
+                    // Get the user.
                     $user = $this->get_userinfo_asobj($user->username);
+
+                    // And add the scope back for adding the user in the DB.
+                    $user->username = $this->add_scope_to_username($user->username);
 
                     // Prep a few params.
                     $user->modified   = time();
@@ -482,7 +504,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             $transaction = $DB->start_delegated_transaction();
             echo "\t";
             print_string('auth_dbupdatinguser', 'auth_db', ['name' => $user->username, 'id' => $user->id]);
-            $userinfo = $this->get_userinfo($user->username);
+            $userinfo = $this->get_userinfo($this->strip_scope_from_username($user->username));
             if (!$this->update_user_record($user->username, $updatekeys, true,
                     $this->is_user_suspended((object) $userinfo))) {
                 echo ' - '.get_string('skipped');
@@ -620,5 +642,57 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             parent::loginpage_hook(); // Call parent function to retain its functionality.
             return;
         }
+    }
+
+    /**
+     * Helper function to get the SQL snippet for the sync scope, if configured.
+     *
+     * @return string
+     */
+    private function get_sync_scope_sql_snippet(): string {
+        global $DB;
+
+        // If no sync scope is configured, return an empty string.
+        if (empty($this->config->sync_scope)) {
+            return '';
+        }
+
+        // If a sync scope is configured, we need to escape it for SQL.
+        $scopesql = $DB->sql_like('u.username', ':scope', false, false);
+
+        // Return the SQL fragment.
+        return ' AND '.$scopesql;
+    }
+
+    /**
+     * Helper function to strip the sync scope from the username.
+     *
+     * @param string $username
+     * @return string
+     */
+    private function strip_scope_from_username(string $username): string {
+        // If no sync scope is configured, return the username as is.
+        if (empty($this->config->sync_scope)) {
+            return $username;
+        }
+
+        // If a sync scope is configured, we need to strip it from the username.
+        return str_replace($this->config->sync_scope, '', $username);
+    }
+
+    /**
+     * Helper function to add the sync scope to the username.
+     *
+     * @param string $username
+     * @return string
+     */
+    private function add_scope_to_username(string $username): string {
+        // If no sync scope is configured, return the username as is.
+        if (empty($this->config->sync_scope)) {
+            return $username;
+        }
+
+        // If a sync scope is configured, we need to add it to the username.
+        return $username . $this->config->sync_scope;
     }
 }

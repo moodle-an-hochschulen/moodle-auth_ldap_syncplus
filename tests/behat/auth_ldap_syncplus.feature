@@ -11,7 +11,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | authpreventaccountcreation | 0                    |
     And the following config values are set as admin:
       | config                      | value                           | plugin             |
-      | host_url                    | ldap://localhost:1389           | auth_ldap_syncplus |
+      | host_url                    | ldap://172.20.0.7:1389           | auth_ldap_syncplus |
       | start_tls                   | 0                               | auth_ldap_syncplus |
       | bind_dn                     | cn=admin,dc=example,dc=org      | auth_ldap_syncplus |
       | bind_pw                     | adminpassword                   | auth_ldap_syncplus |
@@ -47,8 +47,8 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     # user01 exists in the LDAP server, user03 does not.
     And the following "users" exist:
       | username | firstname | lastname | email              | auth          |
-      | user01   | User      | 01       | user01@example.com | ldap_syncplus |
-      | user03   | User      | 03       | user03@example.com | ldap_syncplus |
+      | user01   | User      | 01       | user01@example.org | ldap_syncplus |
+      | user03   | User      | 03       | user03@example.org | ldap_syncplus |
     When I log in as "admin"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
@@ -76,8 +76,8 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And the following "users" exist:
       # user01 and user02 exist in the LDAP server.
       | username | firstname | lastname | email              | auth          |
-      | user01   | User      | 01       | user01@example.com | ldap_syncplus |
-      | user02   | User      | 02       | user02@example.com | ldap_syncplus |
+      | user01   | User      | 01       | user01@example.org | ldap_syncplus |
+      | user02   | User      | 02       | user02@example.org | ldap_syncplus |
     When I log in as "admin"
     And I pretend the suspended user "user02" was suspended "1" days ago
     And I navigate to "Users > Accounts > Browse list of users" in site administration
@@ -99,8 +99,8 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     # user01 exists in the LDAP server, user03 does not.
     And the following "users" exist:
       | username | firstname | lastname | email              | auth          |
-      | user01   | User      | 01       | user01@example.com | ldap_syncplus |
-      | user03   | User      | 03       | user03@example.com | ldap_syncplus |
+      | user01   | User      | 01       | user01@example.org | ldap_syncplus |
+      | user03   | User      | 03       | user03@example.org | ldap_syncplus |
     When I log in as "admin"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
@@ -121,8 +121,8 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And the following "users" exist:
       # user01 and user02 exist in the LDAP server.
       | username | firstname | lastname | email              | auth          |
-      | user01   | User      | 01       | user01@example.com | ldap_syncplus |
-      | user02   | User      | 02       | user02@example.com | ldap_syncplus |
+      | user01   | User      | 01       | user01@example.org | ldap_syncplus |
+      | user02   | User      | 02       | user02@example.org | ldap_syncplus |
     When I log in as "admin"
     And I pretend the suspended user "user02" was suspended "1" days ago
     And I navigate to "Users > Accounts > Browse list of users" in site administration
@@ -144,8 +144,8 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     # user01 exists in the LDAP server, user03 does not.
     And the following "users" exist:
       | username | firstname | lastname | email              | auth          |
-      | user01   | User      | 01       | user01@example.com | ldap_syncplus |
-      | user03   | User      | 03       | user03@example.com | ldap_syncplus |
+      | user01   | User      | 01       | user01@example.org | ldap_syncplus |
+      | user03   | User      | 03       | user03@example.org | ldap_syncplus |
     When I log in as "admin"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
@@ -188,7 +188,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | Choose an authentication method | ldap_syncplus |
       | First name                      | Foo           |
       | Last name                       | Bar           |
-      | Email address                   | foo@bar.com   |
+      | Email address                   | foo@bar.org   |
       | New password                    | Hello!123     |
     And I press "Create user"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
@@ -197,14 +197,14 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And the field "Username" matches value "user01"
     And the field "First name" matches value "User"
     And the field "Last name" matches value "01"
-    And the field "Email address" matches value "user01@example.com"
+    And the field "Email address" matches value "user01@example.org"
 
   Scenario: First login via email should be possible without an existing Moodle account
     Given the following config values are set as admin:
       | config            | value |
       | authloginviaemail | 1     |
     When I follow "Log in"
-    And I set the field "Username" to "user01@example.com"
+    And I set the field "Username" to "user01@example.org"
     And I set the field "Password" to "password1"
     And I press "Log in"
     Then I should see "Welcome, User"
@@ -222,7 +222,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     Given the following "users" exist:
       # user01 exists in the LDAP server.
       | username | firstname | lastname | email              | auth          |
-      | user01   | User      | 01       | user01@example.com | ldap_syncplus |
+      | user01   | User      | 01       | user01@example.org | ldap_syncplus |
     When I log in as "admin"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
@@ -231,7 +231,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I set the following fields to these values:
       | First name    | Foo         |
       | Last name     | Bar         |
-      | Email address | foo@bar.com |
+      | Email address | foo@bar.org |
     And I press "Update profile"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     And I should not see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
@@ -245,7 +245,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And the field "Username" matches value "user01"
     And the field "First name" matches value "User"
     And the field "Last name" matches value "01"
-    And the field "Email address" matches value "user01@example.com"
+    And the field "Email address" matches value "user01@example.org"
 
   Scenario Outline: The LDAP synchronization task can be re-used for creating non-LDAP users
     Given the following config values are set as admin:
@@ -272,7 +272,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | sync_authtype | <authtype> | auth_ldap_syncplus |
     And the following "users" exist:
       | username | firstname | lastname | email              | auth       |
-      | user03   | User      | 03       | user03@example.com | <authtype> |
+      | user03   | User      | 03       | user03@example.org | <authtype> |
     When I log in as "admin"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
@@ -293,7 +293,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | sync_authtype                  | <authtype> | auth_ldap_syncplus |
     And the following "users" exist:
       | username | firstname | lastname | email              | auth       |
-      | user03   | User      | 01       | user01@example.com | <authtype> |
+      | user03   | User      | 01       | user01@example.org | <authtype> |
     When I log in as "admin"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
@@ -329,7 +329,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | sync_authtype          | <authtype> | auth_ldap_syncplus |
     And the following "users" exist:
       | username | firstname | lastname | email              | auth       |
-      | user03   | User      | 03       | user01@example.com | <authtype> |
+      | user03   | User      | 03       | user01@example.org | <authtype> |
     When I log in as "admin"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
@@ -356,7 +356,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | sync_authtype          | <authtype> | auth_ldap_syncplus |
     And the following "users" exist:
       | username | firstname | lastname | email              | auth       |
-      | user01   | User      | 01       | user01@example.com | <authtype> |
+      | user01   | User      | 01       | user01@example.org | <authtype> |
     When I log in as "admin"
     And I pretend the suspended user "user01" was suspended "1" days ago
     And I navigate to "Users > Accounts > Browse list of users" in site administration
