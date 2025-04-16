@@ -376,7 +376,7 @@ if ($ADMIN->fulltree) {
                 new lang_string('sync_authtype', 'auth_ldap_syncplus'),
                 new lang_string('sync_authtype_desc', 'auth_ldap_syncplus'), 'ldap_syncplus', $moodleauthtypeoptions));
 
-        // LDAP username scope.
+        // Username scope when synchronizing users.
         $scopenotification = new \core\output\notification(get_string('sync_scope_note', 'auth_ldap_syncplus'),
                 \core\output\notification::NOTIFY_WARNING);
         $scopenotification->set_show_closebutton(false);
@@ -385,5 +385,12 @@ if ($ADMIN->fulltree) {
                 get_string('sync_scope', 'auth_ldap_syncplus', null, true),
                 $description, '', PARAM_RAW_TRIMMED));
         $settings->hide_if('auth_ldap_syncplus/sync_scope', 'auth_ldap_syncplus/sync_authtype', 'eq', 'ldap_syncplus');
+
+        // LDAP filter when synchronizing users.
+        $defaultfilter = '(&amp;(&lt;user_attribute&gt;=*)&lt;objectclass&gt;)';
+        $settings->add(new auth_ldap_admin_setting_special_lowercase_configtext('auth_ldap_syncplus/sync_filter',
+                new lang_string('sync_filter', 'auth_ldap_syncplus'),
+                new lang_string('sync_filter_desc', 'auth_ldap_syncplus', $defaultfilter), '', PARAM_RAW_TRIMMED));
+        $settings->hide_if('auth_ldap_syncplus/sync_filter', 'auth_ldap_syncplus/sync_authtype', 'eq', 'ldap_syncplus');
     }
 }
