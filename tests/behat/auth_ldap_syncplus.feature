@@ -16,6 +16,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | bind_dn                     | cn=admin,dc=example,dc=org      | auth_ldap_syncplus |
       | bind_pw                     | adminpassword                   | auth_ldap_syncplus |
       | contexts                    | ou=department,dc=example,dc=org | auth_ldap_syncplus |
+      | search_sub                  | 1                               | auth_ldap_syncplus |
       | user_attribute              | uid                             | auth_ldap_syncplus |
       | field_map_firstname         | givenName                       | auth_ldap_syncplus |
       | field_updatelocal_firstname | onlogin                         | auth_ldap_syncplus |
@@ -255,6 +256,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | contexts      | ou=<context>,dc=example,dc=org | auth_ldap_syncplus |
       | sync_authtype | <authtype>                     | auth_ldap_syncplus |
       | sync_scope    | <scope>                        | auth_ldap_syncplus |
+      | sync_filter   | <filter>                       | auth_ldap_syncplus |
     When I log in as "admin"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     And I should not see "User <user1number>" in the "[data-region='report-user-list-wrapper']" "css_element"
@@ -266,11 +268,14 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And the field "Username" matches value "user<user1number><scope>"
 
     Examples:
-      | authtype      | authlabel               | context    | scope        | user1number |
-      | ldap_syncplus | LDAP server (Sync Plus) | department |              | 01          |
-      | shibboleth    | Shibboleth              | department |              | 01          |
-      | shibboleth    | Shibboleth              | scoped     |              | 11          |
-      | shibboleth    | Shibboleth              | scoped     | @example.org | 11          |
+      | authtype      | authlabel               | context    | scope        | filter  | user1number |
+      | ldap_syncplus | LDAP server (Sync Plus) | department |              |         | 01          |
+      | shibboleth    | Shibboleth              | department |              |         | 01          |
+      | shibboleth    | Shibboleth              | scoped     |              |         | 11          |
+      | shibboleth    | Shibboleth              | scoped     | @example.org |         | 11          |
+      | shibboleth    | Shibboleth              | department |              | (uid=*) | 01          |
+      | shibboleth    | Shibboleth              | scoped     |              | (uid=*) | 11          |
+      | shibboleth    | Shibboleth              | scoped     | @example.org | (uid=*) | 11          |
 
   Scenario Outline: The LDAP synchronization task can be re-used for deleting non-LDAP users
     Given the following config values are set as admin:
@@ -279,6 +284,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | removeuser    | 2                              | auth_ldap_syncplus |
       | sync_authtype | <authtype>                     | auth_ldap_syncplus |
       | sync_scope    | <scope>                        | auth_ldap_syncplus |
+      | sync_filter   | <filter>                       | auth_ldap_syncplus |
     And the following "users" exist:
       | username      | firstname | lastname | email              | auth       |
       | user03<scope> | User      | 03       | user03@example.org | <authtype> |
@@ -290,11 +296,14 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     Then I should not see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
 
     Examples:
-      | authtype      | authlabel               | context    | scope        |
-      | ldap_syncplus | LDAP server (Sync Plus) | department |              |
-      | shibboleth    | Shibboleth              | department |              |
-      | shibboleth    | Shibboleth              | scoped     |              |
-      | shibboleth    | Shibboleth              | scoped     | @example.org |
+      | authtype      | authlabel               | context    | scope        | filter  |
+      | ldap_syncplus | LDAP server (Sync Plus) | department |              |         |
+      | shibboleth    | Shibboleth              | department |              |         |
+      | shibboleth    | Shibboleth              | scoped     |              |         |
+      | shibboleth    | Shibboleth              | scoped     | @example.org |         |
+      | shibboleth    | Shibboleth              | department |              | (uid=*) |
+      | shibboleth    | Shibboleth              | scoped     |              | (uid=*) |
+      | shibboleth    | Shibboleth              | scoped     | @example.org | (uid=*) |
 
   Scenario Outline: The LDAP synchronization task can be re-used for suspending non-LDAP users
     Given the following config values are set as admin:
@@ -303,6 +312,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | removeuser    | 1                              | auth_ldap_syncplus |
       | sync_authtype | <authtype>                     | auth_ldap_syncplus |
       | sync_scope    | <scope>                        | auth_ldap_syncplus |
+      | sync_filter   | <filter>                       | auth_ldap_syncplus |
     And the following "users" exist:
       | username      | firstname | lastname | email              | auth       |
       | user03<scope> | User      | 03       | user03@example.org | <authtype> |
@@ -316,11 +326,14 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I should see "Suspended" in the "User 03" "table_row"
 
     Examples:
-      | authtype      | authlabel               | context    | scope        |
-      | ldap_syncplus | LDAP server (Sync Plus) | department |              |
-      | shibboleth    | Shibboleth              | department |              |
-      | shibboleth    | Shibboleth              | scoped     |              |
-      | shibboleth    | Shibboleth              | scoped     | @example.org |
+      | authtype      | authlabel               | context    | scope        | filter  |
+      | ldap_syncplus | LDAP server (Sync Plus) | department |              |         |
+      | shibboleth    | Shibboleth              | department |              |         |
+      | shibboleth    | Shibboleth              | scoped     |              |         |
+      | shibboleth    | Shibboleth              | scoped     | @example.org |         |
+      | shibboleth    | Shibboleth              | department |              | (uid=*) |
+      | shibboleth    | Shibboleth              | scoped     |              | (uid=*) |
+      | shibboleth    | Shibboleth              | scoped     | @example.org | (uid=*) |
 
   Scenario Outline: The LDAP synchronization task can be re-used for un-suspending non-LDAP users
     Given the following config values are set as admin:
@@ -330,6 +343,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | sync_script_createuser_enabled | 0                              | auth_ldap_syncplus |
       | sync_authtype                  | <authtype>                     | auth_ldap_syncplus |
       | sync_scope                     | <scope>                        | auth_ldap_syncplus |
+      | sync_filter                    | <filter>                       | auth_ldap_syncplus |
     And the following "users" exist:
       | username                 | firstname | lastname      | email                         | auth       |
       | user<user1number><scope> | User      | <user1number> | user<user1number>@example.org | <authtype> |
@@ -344,11 +358,14 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I should not see "Suspended" in the "User <user1number>" "table_row"
 
     Examples:
-      | authtype      | authlabel               | context    | scope        | user1number |
-      | ldap_syncplus | LDAP server (Sync Plus) | department |              | 01          |
-      | shibboleth    | Shibboleth              | department |              | 01          |
-      | shibboleth    | Shibboleth              | scoped     |              | 11          |
-      | shibboleth    | Shibboleth              | scoped     | @example.org | 11          |
+      | authtype      | authlabel               | context    | scope        | filter  | user1number |
+      | ldap_syncplus | LDAP server (Sync Plus) | department |              |         | 01          |
+      | shibboleth    | Shibboleth              | department |              |         | 01          |
+      | shibboleth    | Shibboleth              | scoped     |              |         | 11          |
+      | shibboleth    | Shibboleth              | scoped     | @example.org |         | 11          |
+      | shibboleth    | Shibboleth              | department |              | (uid=*) | 01          |
+      | shibboleth    | Shibboleth              | scoped     |              | (uid=*) | 11          |
+      | shibboleth    | Shibboleth              | scoped     | @example.org | (uid=*) | 11          |
 
   Scenario Outline: The LDAP synchronization task can be re-used for deleting non-LDAP users after the grace period
     Given the following config values are set as admin:
@@ -358,6 +375,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | removeuser_graceperiod | 2                              | auth_ldap_syncplus |
       | sync_authtype          | <authtype>                     | auth_ldap_syncplus |
       | sync_scope             | <scope>                        | auth_ldap_syncplus |
+      | sync_filter            | <filter>                       | auth_ldap_syncplus |
     And the following "users" exist:
       | username      | firstname | lastname | email              | auth       |
       | user03<scope> | User      | 03       | user01@example.org | <authtype> |
@@ -375,11 +393,14 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     Then I should not see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
 
     Examples:
-      | authtype      | authlabel               | context    | scope        |
-      | ldap_syncplus | LDAP server (Sync Plus) | department |              |
-      | shibboleth    | Shibboleth              | department |              |
-      | shibboleth    | Shibboleth              | scoped     |              |
-      | shibboleth    | Shibboleth              | scoped     | @example.org |
+      | authtype      | authlabel               | context    | scope        | filter  |
+      | ldap_syncplus | LDAP server (Sync Plus) | department |              |         |
+      | shibboleth    | Shibboleth              | department |              |         |
+      | shibboleth    | Shibboleth              | scoped     |              |         |
+      | shibboleth    | Shibboleth              | scoped     | @example.org |         |
+      | shibboleth    | Shibboleth              | department |              | (uid=*) |
+      | shibboleth    | Shibboleth              | scoped     |              | (uid=*) |
+      | shibboleth    | Shibboleth              | scoped     | @example.org | (uid=*) |
 
   Scenario Outline: The LDAP synchronization task can be re-used for reviving non-LDAP users within the grace period
     Given the following config values are set as admin:
@@ -390,6 +411,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | sync_script_createuser_enabled | 0                              | auth_ldap_syncplus |
       | sync_authtype                  | <authtype>                     | auth_ldap_syncplus |
       | sync_scope                     | <scope>                        | auth_ldap_syncplus |
+      | sync_filter                    | <filter>                       | auth_ldap_syncplus |
     And the following "users" exist:
       | username                 | firstname | lastname      | email                         | auth       |
       | user<user1number><scope> | User      | <user1number> | user<user1number>@example.org | <authtype> |
@@ -404,11 +426,14 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I should not see "Suspended" in the "User <user1number>" "table_row"
 
     Examples:
-      | authtype      | authlabel               | context    | scope        | user1number |
-      | ldap_syncplus | LDAP server (Sync Plus) | department |              | 01          |
-      | shibboleth    | Shibboleth              | department |              | 01          |
-      | shibboleth    | Shibboleth              | scoped     |              | 11          |
-      | shibboleth    | Shibboleth              | scoped     | @example.org | 11          |
+      | authtype      | authlabel               | context    | scope        | filter  | user1number |
+      | ldap_syncplus | LDAP server (Sync Plus) | department |              |         | 01          |
+      | shibboleth    | Shibboleth              | department |              |         | 01          |
+      | shibboleth    | Shibboleth              | scoped     |              |         | 11          |
+      | shibboleth    | Shibboleth              | scoped     | @example.org |         | 11          |
+      | shibboleth    | Shibboleth              | department |              | (uid=*) | 01          |
+      | shibboleth    | Shibboleth              | scoped     |              | (uid=*) | 11          |
+      | shibboleth    | Shibboleth              | scoped     | @example.org | (uid=*) | 11          |
 
   Scenario Outline: The LDAP synchronization task can be re-used for updating non-LDAP users
     Given the following config values are set as admin:
@@ -416,6 +441,7 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | contexts      | ou=<context>,dc=example,dc=org | auth_ldap_syncplus |
       | sync_authtype | <authtype>                     | auth_ldap_syncplus |
       | sync_scope    | <scope>                        | auth_ldap_syncplus |
+      | sync_filter   | <filter>                       | auth_ldap_syncplus |
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     When I log in as "admin"
     And I navigate to "Users > Accounts > Browse list of users" in site administration
@@ -431,8 +457,42 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     Then I should see "User <user1number>" in the "[data-region='report-user-list-wrapper']" "css_element"
 
     Examples:
-      | authtype      | authlabel               | context    | scope        | user1number |
-      | ldap_syncplus | LDAP server (Sync Plus) | department |              | 01          |
-      | shibboleth    | Shibboleth              | department |              | 01          |
-      | shibboleth    | Shibboleth              | scoped     |              | 11          |
-      | shibboleth    | Shibboleth              | scoped     | @example.org | 11          |
+      | authtype      | authlabel               | context    | scope        | filter  | user1number |
+      | ldap_syncplus | LDAP server (Sync Plus) | department |              |         | 01          |
+      | shibboleth    | Shibboleth              | department |              |         | 01          |
+      | shibboleth    | Shibboleth              | scoped     |              |         | 11          |
+      | shibboleth    | Shibboleth              | scoped     | @example.org |         | 11          |
+      | shibboleth    | Shibboleth              | department |              | (uid=*) | 01          |
+      | shibboleth    | Shibboleth              | scoped     |              | (uid=*) | 11          |
+      | shibboleth    | Shibboleth              | scoped     | @example.org | (uid=*) | 11          |
+
+  Scenario Outline: The LDAP synchronization task can be limited to a custom LDAP filter which excludes certain users
+    Given the following config values are set as admin:
+      | config        | value      | plugin             |
+      | contexts      | <context>  | auth_ldap_syncplus |
+      | sync_authtype | <authtype> | auth_ldap_syncplus |
+      | sync_scope    | <scope>    | auth_ldap_syncplus |
+      | sync_filter   | <filter>   | auth_ldap_syncplus |
+    When I log in as "admin"
+    And I navigate to "Users > Accounts > Browse list of users" in site administration
+    And I should not see "User <user1number>" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "User <user2number>" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I reload the page
+    Then I <user1shouldornot> see "User <user1number>" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I <user2shouldornot> see "User <user2number>" in the "[data-region='report-user-list-wrapper']" "css_element"
+
+    Examples:
+      | authtype   | authlabel  | context                         | scope        | filter                              | user1number | user1shouldornot | user2number | user2shouldornot |
+      | shibboleth | Shibboleth | ou=department,dc=example,dc=org |              |                                     | 01          | should           | 02          | should           |
+      | shibboleth | Shibboleth | ou=scoped,dc=example,dc=org     |              |                                     | 11          | should           | 12          | should           |
+      | shibboleth | Shibboleth | ou=scoped,dc=example,dc=org     | @example.org |                                     | 11          | should           | 12          | should           |
+      | shibboleth | Shibboleth | ou=department,dc=example,dc=org |              | (uid=*)                             | 01          | should           | 02          | should           |
+      | shibboleth | Shibboleth | ou=scoped,dc=example,dc=org     |              | (uid=*)                             | 11          | should           | 12          | should           |
+      | shibboleth | Shibboleth | ou=scoped,dc=example,dc=org     | @example.org | (uid=*)                             | 11          | should           | 12          | should           |
+      | shibboleth | Shibboleth | ou=department,dc=example,dc=org |              | (&(objectClass=person)(!(uid=*02))) | 01          | should           | 02          | should not       |
+      | shibboleth | Shibboleth | ou=scoped,dc=example,dc=org     |              | (&(objectClass=person)(!(uid=*12))) | 11          | should           | 12          | should not       |
+      | shibboleth | Shibboleth | ou=scoped,dc=example,dc=org     | @example.org | (&(objectClass=person)(!(uid=*12))) | 11          | should           | 12          | should not       |
+      | shibboleth | Shibboleth | dc=example,dc=org               |              | (&(!(ou:dn:=scoped))(uid=*))        | 01          | should           | 11          | should not       |
+      | shibboleth | Shibboleth | dc=example,dc=org               |              | (&(!(ou:dn:=scoped))(uid=*))        | 01          | should           | 11          | should not       |
+      | shibboleth | Shibboleth | dc=example,dc=org               | @example.org | (&(!(ou:dn:=scoped))(uid=*))        | 01          | should           | 11          | should not       |
