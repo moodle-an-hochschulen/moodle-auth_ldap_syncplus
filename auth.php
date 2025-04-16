@@ -112,7 +112,14 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
         // Get user's list from ldap to sql in a scalable fashion.
         // Prepare some data we'll need.
-        $filter = '(&('.$this->config->user_attribute.'=*)'.$this->config->objectclass.')';
+
+        // Get the custom LDAP sync filter.
+        $filter = $this->get_ldap_sync_filter();
+        // But if it's empty, use the default filter.
+        if (empty($filter)) {
+            $filter = '(&('.$this->config->user_attribute.'=*)'.$this->config->objectclass.')';
+        }
+
         $servercontrols = array();
 
         $contexts = explode(';', $this->config->contexts);
@@ -701,5 +708,21 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
         // If a sync scope is configured, we need to add it to the username.
         return $username . $this->config->sync_scope;
+    }
+
+    /**
+     * Helper function to determine the custom LDAP sync filter, if configured.
+     *
+     * @return string
+     */
+    private function get_ldap_sync_filter(): string {
+
+        // If the sync auth method is still LDAP SyncPlus or if no sync filter is configured, return an empty string.
+        if ($this->config->sync_authtype == 'ldap_syncplus' || empty($this->config->sync_filter)) {
+            return '';
+        }
+
+        // If a sync filter is configured, return it.
+        return $this->config->sync_filter;
     }
 }
