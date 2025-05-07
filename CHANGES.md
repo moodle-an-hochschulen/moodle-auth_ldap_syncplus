@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2025-04-14 - Prepare compatibility for Moodle 5.0.
+
 ### v4.5-r3
 
 * 2025-03-31 - Deprecation: core\session\manager::kill_user_sessions has been deprecated since 4.5, resolves #41.
