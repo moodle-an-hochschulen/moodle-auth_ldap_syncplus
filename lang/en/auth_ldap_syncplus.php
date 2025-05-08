@@ -51,5 +51,6 @@ $string['userentriestoremovedone'] = 'Transaction complete – User entries remo
 $string['userentriestorevivedone'] = 'Transaction complete – User entries revived: {$a}';
 $string['userentriestosuspend'] = 'User entries to be suspended: {$a}';
 $string['userentriestosuspenddone'] = 'Transaction complete – User entries suspended: {$a}';
-$string['userentriestoupdatedone'] = 'Transaction complete – User entries updated: {$a}';
+$string['userentriestoupdate'] = 'User entries to be checked for updates: {$a}';
+$string['userentriestoupdatedone'] = 'Transaction complete – User entries updated: {$a->updated}, user entries skipped: {$a->skipped}';
 $string['waitinginremovalqueue'] = 'Waiting in removal queue for {$a->days} day grace period: {$a->name} ID {$a->id}';

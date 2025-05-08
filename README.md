@@ -31,6 +31,8 @@ Moodle core's auth_ldap authentication plugin is a great basis for authenticatin
 
 * It adds the possibility to sync Moodle users who login with other authentication types like Shibboleth from LDAP anyway.
 
+* It adds end-of-transaction trace messages to the sync task to help the admin to understand (or automatically process the sync task log) how many users were handled
+
 
 Installation
 ------------
