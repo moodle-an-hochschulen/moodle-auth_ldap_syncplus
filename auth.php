@@ -65,6 +65,87 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         self::__construct();
     }
 
+    /**
+     * Reads user information from ldap and returns it in array()
+     *
+     * Function should return all information available. If you are saving
+     * this information to moodle user-table you should honor syncronization flags
+     *
+     * @param string $username username
+     *
+     * @return mixed array with no magic quotes or false on error
+     */
+    function get_userinfo($username) {
+        $extusername = core_text::convert($username, 'utf-8', $this->config->ldapencoding);
+
+        // Remove the scope from the username if configured.
+        // This must be done here and not in the calling code as this function is also called by update_user_record()
+        // which is part of lib/authlib.php and which is not overritten by this plugin.
+        $extusername = $this->strip_scope_from_username($extusername);
+
+        $ldapconnection = $this->ldap_connect();
+
+        if(!($user_dn = $this->ldap_find_userdn($ldapconnection, $extusername))) {
+            $this->ldap_close();
+            return false;
+        }
+
+        $search_attribs = array();
+        $attrmap = $this->ldap_attributes();
+        foreach ($attrmap as $key => $values) {
+            if (!is_array($values)) {
+                $values = array($values);
+            }
+            foreach ($values as $value) {
+                if (!in_array($value, $search_attribs)) {
+                    array_push($search_attribs, $value);
+                }
+            }
+        }
+
+        if (!$user_info_result = ldap_read($ldapconnection, $user_dn, '(objectClass=*)', $search_attribs)) {
+            $this->ldap_close();
+            return false; // error!
+        }
+
+        $user_entry = ldap_get_entries_moodle($ldapconnection, $user_info_result);
+        if (empty($user_entry)) {
+            $this->ldap_close();
+            return false; // entry not found
+        }
+
+        $result = array();
+        foreach ($attrmap as $key => $values) {
+            if (!is_array($values)) {
+                $values = array($values);
+            }
+            $ldapval = NULL;
+            foreach ($values as $value) {
+                $entry = $user_entry[0];
+                if (($value == 'dn') || ($value == 'distinguishedname')) {
+                    $result[$key] = $user_dn;
+                    continue;
+                }
+                if (!array_key_exists($value, $entry)) {
+                    continue; // wrong data mapping!
+                }
+                if (is_array($entry[$value])) {
+                    $newval = core_text::convert($entry[$value][0], $this->config->ldapencoding, 'utf-8');
+                } else {
+                    $newval = core_text::convert($entry[$value], $this->config->ldapencoding, 'utf-8');
+                }
+                if (!empty($newval)) { // favour ldap entries that are set
+                    $ldapval = $newval;
+                }
+            }
+            if (!is_null($ldapval)) {
+                $result[$key] = $ldapval;
+            }
+        }
+
+        $this->ldap_close();
+        return $result;
+    }
 
     /**
      * Synchronise users from the external LDAP server to Moodle's user table.
@@ -515,7 +596,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             $transaction = $DB->start_delegated_transaction();
             echo "\t";
             print_string('auth_dbupdatinguser', 'auth_db', ['name' => $user->username, 'id' => $user->id]);
-            $userinfo = $this->get_userinfo($this->strip_scope_from_username($user->username));
+            $userinfo = $this->get_userinfo($user->username);
             if (!$this->update_user_record($user->username, $updatekeys, true,
                     $this->is_user_suspended((object) $userinfo))) {
                 echo ' - '.get_string('skipped');
