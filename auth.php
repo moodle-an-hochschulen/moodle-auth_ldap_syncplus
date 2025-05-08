@@ -590,7 +590,11 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
     public function update_users(array $users, array $updatekeys): void {
         global $DB;
 
-        mtrace(get_string('userentriestoupdate', 'auth_ldap', count($users)));
+        mtrace(get_string('userentriestoupdate', 'auth_ldap_syncplus', count($users)));
+
+        // Initialize the counters.
+        $usersupdated = 0;
+        $usersskipped = 0;
 
         foreach ($users as $user) {
             $transaction = $DB->start_delegated_transaction();
@@ -600,6 +604,12 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             if (!$this->update_user_record($user->username, $updatekeys, true,
                     $this->is_user_suspended((object) $userinfo))) {
                 echo ' - '.get_string('skipped');
+
+                // Raise the counter.
+                $usersskipped++;
+            } else {
+                // Raise the counter.
+                $usersupdated++;
             }
             echo "\n";
 
@@ -608,7 +618,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             $transaction->allow_commit();
         }
 
-        mtrace(get_string('userentriestoupdatedone', 'auth_ldap_syncplus', count($users)));
+        mtrace(get_string('userentriestoupdatedone', 'auth_ldap_syncplus',
+                ['updated' => $usersupdated, 'skipped' => $usersskipped]));
     }
 
     /**
