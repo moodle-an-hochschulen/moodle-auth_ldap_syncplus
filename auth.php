@@ -103,7 +103,14 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             }
         }
 
-        if (!$user_info_result = ldap_read($ldapconnection, $user_dn, '(objectClass=*)', $search_attribs)) {
+        // Get the custom LDAP sync filter.
+        $filter = $this->get_ldap_sync_filter();
+        // But if it's empty, use the default filter.
+        if (empty($filter)) {
+            $filter = '(objectClass=*)';
+        }
+
+        if (!$user_info_result = ldap_read($ldapconnection, $user_dn, $filter, $search_attribs)) {
             $this->ldap_close();
             return false; // error!
         }
