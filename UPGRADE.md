@@ -21,7 +21,7 @@ Upstream changes
 Automated tests
 ---------------
 
-* The plugin has a good coverage with Behat tests which test most of the plugin's user stories.
+* The plugin has a good coverage with Behat tests which test all of the plugin's user stories.
 * To run the automated tests, a running LDAP server is necessary. This is realized in the Github actions workflow. If you want to run the automated tests locally, you have to adapt the tests to a local LDAP server yourself.
 If you do not have a running LDAP server at hand, you can try to spin up the Bitnami LDAP server which is used in Github actions with this docker-compose command:
 ```
@@ -33,7 +33,6 @@ Manual tests
 ------------
 
 * Even though there are automated tests, as the plugin deals with the communication to a backend system, manual tests should be carried out to see if the plugin's functionality really works with a real LDAP server.
-* Additionally, if you look at the Behat feature file, you will see that there are some scenarios still commented out. If you have time, you should test them manually or write a Behat test for it.
 
 
 Visual checks
