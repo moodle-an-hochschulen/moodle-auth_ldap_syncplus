@@ -254,10 +254,20 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 }
                 if ($entry = @ldap_first_entry($ldapconnection, $ldapresult)) {
                     do {
-                        $value = ldap_get_values_len($ldapconnection, $entry, $this->config->user_attribute);
-                        $value = core_text::convert($value[0], $this->config->ldapencoding, 'utf-8');
-                        $value = trim($value);
-                        $this->ldap_bulk_insert($value);
+                        // Only if the user attribute exists in this entry.
+                        // This additional check is necessary for the case that the admin set a custom sync_filter
+                        // which might return entries that do not have the user attribute set.
+                        $entryattributes = ldap_get_attributes($ldapconnection, $entry);
+                        if (empty($this->get_ldap_sync_filter()) || isset($entryattributes[$this->config->user_attribute])) {
+                            $value = ldap_get_values_len($ldapconnection, $entry, $this->config->user_attribute);
+                            $value = core_text::convert($value[0], $this->config->ldapencoding, 'utf-8');
+                            $value = trim($value);
+                            $this->ldap_bulk_insert($value);
+
+                            // If the attribute doesn't exist, the entry is simply skipped.
+                        } else {
+                            mtrace(get_string('sync_filter_nouserattribute', 'auth_ldap_syncplus'));
+                        }
                     } while ($entry = ldap_next_entry($ldapconnection, $entry));
                 }
                 unset($ldapresult); // Free mem.
