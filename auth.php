@@ -391,19 +391,18 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         // Find users missing in DB that are in LDAP
         // and gives me a nifty object I don't want.
         // note: we do not care about deleted accounts anymore, this feature was replaced by suspending to nologin auth plugin.
+        $errors = 0;
         if (!empty($this->config->sync_script_createuser_enabled) and $this->config->sync_script_createuser_enabled == 1) {
             $sql = 'SELECT e.id, e.username
                       FROM {tmp_extuser} e
-                      LEFT JOIN {user} u ON (e.username = u.username AND e.mnethostid = u.mnethostid)
+                      LEFT JOIN {user} u ON (e.username = u.username AND e.mnethostid = u.mnethostid AND u.auth = :auth)
                      WHERE u.id IS NULL';
-            $add_users = $DB->get_records_sql($sql);
+            $add_users = $DB->get_records_sql($sql, array('auth'=>$this->authtype));
 
             if (!empty($add_users)) {
                 mtrace(get_string('userentriestoadd', 'auth_ldap', count($add_users)));
-                $errors = 0;
-
+                
                 foreach ($add_users as $user) {
-                    $transaction = $DB->start_delegated_transaction();
                     $user = $this->get_userinfo_asobj($user->username);
 
                     // Prep a few params.
@@ -433,6 +432,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                         $errors++;
                         continue;
                     }
+                    $transaction = $DB->start_delegated_transaction();
                     mtrace("\t".get_string('auth_dbinsertuser', 'auth_db', array('name'=>$user->username, 'id'=>$id)));
                     $euser = $DB->get_record('user', array('id' => $id));
 
@@ -463,6 +463,10 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
         $dbman->drop_table($table);
         $this->ldap_close();
+
+        if($errors){
+            throw new \moodle_exception(get_string('invalidusererrors', 'auth_ldap', $errors));
+        }
 
         return true;
     }
