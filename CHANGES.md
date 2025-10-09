@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2025-10-09 - Tests: Use openldap docker image from bitnamilegacy from now on.
 * 2025-04-16 - Expert feature: Allow the admin to set a custom LDAP filter for the sync task, resolves #44.
 * 2025-04-09 - Improvement: Add end-of-transaction trace messages to sync task and make clear that the number of user entries to be updated is only a number of user entries to be checked for updates.
 * 2025-04-07 - Expert feature: Allow the admin to set a scope for the username within the sync task, resolves #38.
