@@ -1,6 +1,6 @@
 services:
   openldap:
-    image: bitnami/openldap:2.6
+    image: bitnamilegacy/openldap:2.6 # This image won't receive updates due to https://github.com/bitnami/containers/issues/83267, but it is still fine for automated testing.
     ports:
       - '1389:1389'
       - '1636:1636'
