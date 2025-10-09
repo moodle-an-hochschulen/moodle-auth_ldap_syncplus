@@ -4,7 +4,7 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
-### Unreleased
+### v5.0-r2
 
 * 2025-10-09 - Tests: Use openldap docker image from bitnamilegacy from now on.
 * 2025-04-16 - Expert feature: Allow the admin to set a custom LDAP filter for the sync task, resolves #44.
