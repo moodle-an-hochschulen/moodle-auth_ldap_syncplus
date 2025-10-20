@@ -32,7 +32,6 @@ namespace auth_ldap_syncplus\task;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class sync_roles extends \core\task\scheduled_task {
-
     /**
      * Constructor.
      */
@@ -40,7 +39,7 @@ class sync_roles extends \core\task\scheduled_task {
         global $CFG;
 
         // Require local library.
-        require_once($CFG->dirroot.'/auth/ldap_syncplus/locallib.php');
+        require_once($CFG->dirroot . '/auth/ldap_syncplus/locallib.php');
 
         // No need to call parent constructor as it does not exist.
     }
@@ -80,5 +79,4 @@ class sync_roles extends \core\task\scheduled_task {
             }
         }
     }
-
 }
