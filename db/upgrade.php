@@ -54,8 +54,11 @@ function xmldb_auth_ldap_syncplus_upgrade($oldversion) {
 
     if ($oldversion < 2021072003) {
         // Normalize the memberattribute_isdn plugin config.
-        set_config('memberattribute_isdn',
-                !empty(get_config('auth_ldap_syncplus', 'memberattribute_isdn')), 'auth_ldap');
+        set_config(
+            'memberattribute_isdn',
+            !empty(get_config('auth_ldap_syncplus', 'memberattribute_isdn')),
+            'auth_ldap'
+        );
 
         upgrade_plugin_savepoint(true, 2021072003, 'auth', 'ldap_syncplus');
     }

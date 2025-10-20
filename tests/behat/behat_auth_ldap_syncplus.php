@@ -34,7 +34,6 @@ require_once(__DIR__ . '/../../../../lib/behat/behat_base.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class behat_auth_ldap_syncplus extends behat_base {
-
     /**
      * The step makes sure that a given user appears to be suspended already some days ago to test the grace period setting
      * of this plugin.
