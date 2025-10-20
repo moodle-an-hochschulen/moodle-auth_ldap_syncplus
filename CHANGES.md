@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2025-10-15 - Tests: Switch Github actions workflows to reusable workflows by Moodle an Hochschulen e.V.
+
 ### v4.5-r4
 
 * 2025-10-09 - Tests: Use openldap docker image from bitnamilegacy from now on.
