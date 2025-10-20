@@ -44,16 +44,13 @@ class eventobservers {
 
         // Do only if user id is enclosed in $eventdata.
         if (!empty($event->relateduserid)) {
-
             // Get user data.
             $user = $DB->get_record('user', ['id' => $event->relateduserid]);
 
             // Do if user was found.
             if (!empty($user->username)) {
-
                 // Do only if user has ldap_syncplus authentication.
                 if (isset($user->auth) && $user->auth == 'ldap_syncplus') {
-
                     // Update user.
                     // Actually, we would want to call auth_plugin_base::update_user_record()
                     // which is lighter, but this function is unfortunately protected since Moodle 3.5.

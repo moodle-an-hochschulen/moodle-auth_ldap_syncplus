@@ -44,7 +44,7 @@ class sync_task extends \core\task\scheduled_task {
         global $CFG;
 
         // Require local library.
-        require_once($CFG->dirroot.'/auth/ldap_syncplus/locallib.php');
+        require_once($CFG->dirroot . '/auth/ldap_syncplus/locallib.php');
 
         // No need to call parent constructor as it does not exist.
     }
