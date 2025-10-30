@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2025-10-26 - Prepare compatibility for Moodle 5.1.
+
 ### v5.0-r3
 
 * 2025-10-15 - Make codechecker happy again
