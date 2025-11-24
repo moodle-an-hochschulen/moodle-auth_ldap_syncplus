@@ -258,6 +258,10 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                         // This additional check is necessary for the case that the admin set a custom sync_filter
                         // which might return entries that do not have the user attribute set.
                         $entryattributes = ldap_get_attributes($ldapconnection, $entry);
+                        // Normalize array keys to lowercase for case-insensitive comparison.
+                        // This is necessary as the user_attribute attribute which we want to compare now is stored in a
+                        // auth_ldap_admin_setting_special_lowercase_configtext setting.
+                        $entryattributes = array_change_key_case($entryattributes, CASE_LOWER);
                         if (empty($this->get_ldap_sync_filter()) || isset($entryattributes[$this->config->user_attribute])) {
                             $value = ldap_get_values_len($ldapconnection, $entry, $this->config->user_attribute);
                             $value = core_text::convert($value[0], $this->config->ldapencoding, 'utf-8');
