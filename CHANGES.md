@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2025-11-24 - Improvement: Refine the if clause to be used in the custom LDAP filter handling, resolves #46
+
 ### v5.1-r1
 
 * 2025-10-26 - Prepare compatibility for Moodle 5.1.
