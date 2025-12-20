@@ -533,6 +533,15 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     // Get the user.
                     $user = $this->get_userinfo_asobj($user->username);
 
+                    // If the user was added to the temporary table some seconds ago, but
+                    // can't be found in LDAP anymore now for some reason, skip it.
+                    if ($user === false) {
+                        mtrace("\t".get_string('usernotfoundanymore', 'auth_ldap_syncplus', ['name' => $user->username]));
+                        $errors++;
+                        $transaction->allow_commit();
+                        continue;
+                    }
+
                     // Prep a few params.
                     $user->modified   = time();
                     $user->confirmed  = 1;

@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2025-12-20 - Bugfix: Skip LDAP user from temporary user table which is not found anymore in LDAP when trying the create the user in Moodle.
+
 ### v4.5-r6
 
 * 2025-11-24 - Improvement: Refine the if clause to be used in the custom LDAP filter handling, resolves #46
