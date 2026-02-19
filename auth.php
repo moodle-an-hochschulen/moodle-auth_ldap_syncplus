@@ -66,6 +66,61 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
     }
 
     /**
+     * Workaround: Moodle core update_user_record() skips suspended-only changes.
+     *
+     * If only the suspension status changed (e.g. shadowExpire), core may "skip" the update.
+     * This override applies the suspended change explicitly.
+     */
+    protected function update_user_record($username, $updatekeys = false, $triggerevent = false, $suspenduser = false) {
+        global $CFG, $DB;
+
+        // Let core handle normal updates first.
+        $result = parent::update_user_record($username, $updatekeys, $triggerevent, $suspenduser);
+        if ($result !== false) {
+            return $result;
+        }
+
+        // Only if 'suspended' is being synced.
+        $shouldupdatesuspended = ($updatekeys === false) ||
+            (is_array($updatekeys) && in_array('suspended', $updatekeys, true));
+        if (!$shouldupdatesuspended) {
+            return false;
+        }
+
+        $username = trim(core_text::strtolower($username));
+
+        $user = $DB->get_record('user', [
+            'username'   => $username,
+            'mnethostid' => $CFG->mnet_localhost_id,
+            'deleted'    => 0
+        ], 'id,suspended', IGNORE_MISSING);
+
+        if (!$user) {
+            return false;
+        }
+
+        $newsuspended = (int)!empty($suspenduser);
+
+        if ((int)$user->suspended === $newsuspended) {
+            return false;
+        }
+
+        require_once($CFG->dirroot . '/user/lib.php');
+
+        $update = (object)[
+            'id'        => $user->id,
+            'suspended' => $newsuspended
+        ];
+        user_update_user($update, false, $triggerevent);
+
+        if ($newsuspended) {
+            \core\session\manager::destroy_user_sessions($user->id);
+        }
+
+        return $DB->get_record('user', ['id' => $user->id, 'deleted' => 0]);
+    }
+
+    /**
      * Reads user information from ldap and returns it in array()
      *
      * Function should return all information available. If you are saving
