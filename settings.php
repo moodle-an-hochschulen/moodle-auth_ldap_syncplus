@@ -593,6 +593,17 @@ if ($ADMIN->fulltree) {
         ));
         $settings->hide_if('auth_ldap_syncplus/sync_scope', 'auth_ldap_syncplus/sync_authtype', 'eq', 'ldap_syncplus');
 
+        // Ignore users outside the configured scope during removal checks.
+        $settings->add(new admin_setting_configselect(
+            'auth_ldap_syncplus/ignore_other_scopes',
+            new lang_string('ignore_other_scopes', 'auth_ldap_syncplus'),
+            new lang_string('ignore_other_scopes_desc', 'auth_ldap_syncplus'),
+            1,
+            $yesno
+        ));
+        $settings->hide_if('auth_ldap_syncplus/ignore_other_scopes', 'auth_ldap_syncplus/sync_authtype', 'eq', 'ldap_syncplus');
+        $settings->hide_if('auth_ldap_syncplus/ignore_other_scopes', 'auth_ldap_syncplus/sync_scope', 'eq', '');
+
         // LDAP filter when synchronizing users.
         $defaultfilter = '(&amp;(&lt;user_attribute&gt;=*)&lt;objectclass&gt;)';
         $settings->add(new auth_ldap_admin_setting_special_lowercase_configtext(
