@@ -313,8 +313,12 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                             AND u.mnethostid = e.mnethostid)
                          WHERE u.auth = :auth
                                AND u.deleted = 0
-                               AND e.username IS NULL";
-                $remove_users = $DB->get_records_sql($sql, array('auth'=>$this->config->sync_authtype));
+                               AND e.username IS NULL".
+                               $this->get_remove_users_scope_filter_sql_snippet('u.username');
+                $remove_users = $DB->get_records_sql($sql, array_merge(
+                    ['auth' => $this->config->sync_authtype],
+                    $this->get_remove_users_scope_filter_sql_params()
+                ));
 
                 if (!empty($remove_users)) {
                     mtrace(get_string('userentriestoremove', 'auth_ldap', count($remove_users)));
@@ -341,8 +345,12 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                          WHERE u.auth = :auth
                                AND u.deleted = 0
                                AND u.suspended = 0
-                               AND e.username IS NULL";
-                $remove_users = $DB->get_records_sql($sql, array('auth'=>$this->config->sync_authtype));
+                               AND e.username IS NULL".
+                               $this->get_remove_users_scope_filter_sql_snippet('u.username');
+                $remove_users = $DB->get_records_sql($sql, array_merge(
+                    ['auth' => $this->config->sync_authtype],
+                    $this->get_remove_users_scope_filter_sql_params()
+                ));
 
                 if (!empty($remove_users)) {
                     mtrace(get_string('userentriestoremove', 'auth_ldap', count($remove_users)));
@@ -432,8 +440,12 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                      WHERE u.auth = :auth
                            AND u.deleted = 0
                            AND u.suspended = 0
-                           AND e.username IS NULL";
-            $remove_users = $DB->get_records_sql($sql, array('auth'=>$this->config->sync_authtype));
+                           AND e.username IS NULL".
+                           $this->get_remove_users_scope_filter_sql_snippet('u.username');
+            $remove_users = $DB->get_records_sql($sql, array_merge(
+                ['auth' => $this->config->sync_authtype],
+                $this->get_remove_users_scope_filter_sql_params()
+            ));
 
             if (!empty($remove_users)) {
                 mtrace(get_string('userentriestosuspend', 'auth_ldap_syncplus', count($remove_users)));
@@ -461,8 +473,12 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                         AND u.mnethostid = e.mnethostid)
                      WHERE u.auth = :auth
                            AND u.deleted = 0
-                           AND e.username IS NULL";
-            $remove_users = $DB->get_records_sql($sql, array('auth'=>$this->config->sync_authtype));
+                           AND e.username IS NULL".
+                           $this->get_remove_users_scope_filter_sql_snippet('u.username');
+            $remove_users = $DB->get_records_sql($sql, array_merge(
+                ['auth' => $this->config->sync_authtype],
+                $this->get_remove_users_scope_filter_sql_params()
+            ));
 
             if (!empty($remove_users)) {
                 mtrace(get_string('userentriestoremove', 'auth_ldap', count($remove_users)));
@@ -492,10 +508,17 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
         // User Updates - time-consuming (optional).
         if ($updatecallback && $updatekeys = $this->get_profile_keys()) { // Run updates only if relevant.
-            $users = $DB->get_records_sql('SELECT u.username, u.id
-                                             FROM {user} u
-                                            WHERE u.deleted = 0 AND u.auth = ? AND u.mnethostid = ?',
-                                          array($this->config->sync_authtype, $CFG->mnet_localhost_id));
+            $sql = 'SELECT u.username, u.id
+                      FROM {user} u
+                     WHERE u.deleted = 0 AND u.auth = :auth AND u.mnethostid = :mnethostid' .
+                     $this->get_remove_users_scope_filter_sql_snippet('u.username');
+            $users = $DB->get_records_sql($sql, array_merge(
+                [
+                    'auth' => $this->config->sync_authtype,
+                    'mnethostid' => $CFG->mnet_localhost_id,
+                ],
+                $this->get_remove_users_scope_filter_sql_params()
+            ));
             if (!empty($users)) {
                 // Update users in chunks as specified in sync_updateuserchunk.
                 if (!empty($this->config->sync_updateuserchunk)) {
@@ -789,6 +812,55 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
         // Return the SQL fragment.
         return $scopesql;
+    }
+
+    /**
+     * Whether users outside the configured sync_scope should be excluded from remove/update sync actions.
+     *
+     * Requires a non-empty sync_scope and ignore_other_scopes set to Yes (admin_setting_configselect: 1).
+     *
+     * @return bool true if only users whose username ends with sync_scope should be processed
+     */
+    private function is_ignore_other_scopes_enabled(): bool {
+        if (empty($this->config->sync_scope)) {
+            return false;
+        }
+        if (empty($this->config->ignore_other_scopes)) {
+            return false;
+        }
+        return $this->config->ignore_other_scopes == true;
+    }
+
+    /**
+     * Returns additional SQL to restrict remove/update queries to users within the configured sync_scope.
+     *
+     * When ignore_other_scopes is enabled, only Moodle users whose username ends with sync_scope
+     * are included in suspend/delete/update candidate lists.
+     *
+     * @param string $userfield The user table column to match (typically u.username)
+     * @return string Empty string if filtering is disabled; otherwise " AND <userfield> LIKE :scope"
+     */
+    private function get_remove_users_scope_filter_sql_snippet(string $userfield): string {
+        global $DB;
+
+        if (!$this->is_ignore_other_scopes_enabled()) {
+            return '';
+        }
+
+        return ' AND ' . $DB->sql_like($userfield, ':scope', false, false);
+    }
+
+    /**
+     * Returns bound parameters for get_remove_users_scope_filter_sql_snippet().
+     *
+     * @return array Empty array if filtering is disabled; otherwise ['scope' => '%<sync_scope>']
+     */
+    private function get_remove_users_scope_filter_sql_params(): array {
+        if (!$this->is_ignore_other_scopes_enabled()) {
+            return [];
+        }
+
+        return ['scope' => '%' . $this->config->sync_scope];
     }
 
     /**

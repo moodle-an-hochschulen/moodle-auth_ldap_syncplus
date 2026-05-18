@@ -26,6 +26,9 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | field_updatelocal_email     | onlogin                         | auth_ldap_syncplus |
 
   Scenario: All additional LDAP server (Sync Plus) settings should be there
+    Given the following config values are set as admin:
+      | config        | value      | plugin             |
+      | sync_authtype | shibboleth | auth_ldap_syncplus |
     When I log in as "admin"
     And I navigate to "Plugins > Authentication > Manage authentication" in site administration
     And I click on "Settings" "link" in the "LDAP server (Sync Plus)" "table_row"
@@ -33,6 +36,10 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And the "Removed ext user" select box should contain "Suspend internal and fully delete internal after grace period"
     And I should see "Fully deleting grace period" in the "#admin-removeuser_graceperiod" "css_element"
     And I should see "Add new users" in the "#admin-sync_script_createuser_enabled" "css_element"
+    And I should see "Moodle authentication type when synchronizing users" in the "#region-main .settingsform" "css_element"
+    And I should see "Username scope when synchronizing users" in the "#region-main .settingsform" "css_element"
+    And I should see "LDAP filter when synchronizing users" in the "#region-main .settingsform" "css_element"
+    And I should see "Ignore users outside the configured username scope" in the "#region-main .settingsform" "css_element"
 
   Scenario: The LDAP connection should work
     When I log in as "admin"
@@ -465,6 +472,184 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | shibboleth    | Shibboleth              | department |              | (uid=*) | 01          |
       | shibboleth    | Shibboleth              | scoped     |              | (uid=*) | 11          |
       | shibboleth    | Shibboleth              | scoped     | @example.org | (uid=*) | 11          |
+
+  Scenario Outline: The LDAP synchronization task respects ignore_other_scopes when deleting non-LDAP users outside sync_scope
+    Given the following config values are set as admin:
+      | config                | value                       | plugin             |
+      | contexts              | ou=scoped,dc=example,dc=org | auth_ldap_syncplus |
+      | removeuser            | 2                           | auth_ldap_syncplus |
+      | sync_authtype         | shibboleth                  | auth_ldap_syncplus |
+      | sync_scope            | @example.org                | auth_ldap_syncplus |
+      | sync_filter           | <filter>                    | auth_ldap_syncplus |
+      | ignore_other_scopes   | <ignore_other_scopes>       | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username           | firstname | lastname | email              | auth       |
+      | user03@example.org | User      | 03       | user03@example.org | shibboleth |
+      | user04@example.net | User      | 04net    | user04@example.net | shibboleth |
+    When I log in as "admin"
+    And I navigate to "Users > Accounts > Browse list of users" in site administration
+    And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "User 04net" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I reload the page
+    Then I should not see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I <shouldornot> see "User 04net" in the "[data-region='report-user-list-wrapper']" "css_element"
+
+    Examples:
+      | filter  | ignore_other_scopes | shouldornot |
+      |         | 0                   | should not  |
+      |         | 1                   | should      |
+      | (uid=*) | 0                   | should not  |
+      | (uid=*) | 1                   | should      |
+
+  Scenario Outline: The LDAP synchronization task respects ignore_other_scopes when suspending non-LDAP users outside sync_scope
+    Given the following config values are set as admin:
+      | config                | value                       | plugin             |
+      | contexts              | ou=scoped,dc=example,dc=org | auth_ldap_syncplus |
+      | removeuser            | 1                           | auth_ldap_syncplus |
+      | sync_authtype         | shibboleth                  | auth_ldap_syncplus |
+      | sync_scope            | @example.org                | auth_ldap_syncplus |
+      | sync_filter           | <filter>                    | auth_ldap_syncplus |
+      | ignore_other_scopes   | <ignore_other_scopes>       | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username           | firstname | lastname | email              | auth       |
+      | user03@example.org | User      | 03       | user03@example.org | shibboleth |
+      | user04@example.net | User      | 04net    | user04@example.net | shibboleth |
+    When I log in as "admin"
+    And I navigate to "Users > Accounts > Browse list of users" in site administration
+    And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "User 04net" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Suspended" in the "User 03" "table_row"
+    And I should not see "Suspended" in the "User 04net" "table_row"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I reload the page
+    Then I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "Suspended" in the "User 03" "table_row"
+    And I should see "User 04net" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I <shouldornot> see "Suspended" in the "User 04net" "table_row"
+
+    Examples:
+      | filter  | ignore_other_scopes | shouldornot |
+      |         | 0                   | should      |
+      |         | 1                   | should not  |
+      | (uid=*) | 0                   | should      |
+      | (uid=*) | 1                   | should not  |
+
+  Scenario Outline: The LDAP synchronization task respects ignore_other_scopes (set to yes) when deleting non-LDAP users after the grace period
+    Given the following config values are set as admin:
+      | config                         | value                       | plugin             |
+      | contexts                       | ou=scoped,dc=example,dc=org | auth_ldap_syncplus |
+      | removeuser                     | 3                           | auth_ldap_syncplus |
+      | removeuser_graceperiod         | 2                           | auth_ldap_syncplus |
+      | sync_script_createuser_enabled | 0                           | auth_ldap_syncplus |
+      | sync_authtype                  | shibboleth                  | auth_ldap_syncplus |
+      | sync_scope                     | @example.org                | auth_ldap_syncplus |
+      | sync_filter                    | <filter>                    | auth_ldap_syncplus |
+      | ignore_other_scopes            | 1                           | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username           | firstname | lastname | email              | auth       |
+      | user03@example.org | User      | 03       | user03@example.org | shibboleth |
+      | user04@example.net | User      | 04net    | user04@example.net | shibboleth |
+    When I log in as "admin"
+    And I navigate to "Users > Accounts > Browse list of users" in site administration
+    And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "User 04net" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Suspended" in the "User 03" "table_row"
+    And I should not see "Suspended" in the "User 04net" "table_row"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I reload the page
+    Then I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "Suspended" in the "User 03" "table_row"
+    And I should see "User 04net" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Suspended" in the "User 04net" "table_row"
+    And I pretend the suspended user "user03@example.org" was suspended "3" days ago
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I reload the page
+    Then I should not see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "User 04net" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Suspended" in the "User 04net" "table_row"
+
+    Examples:
+      | filter  |
+      |         |
+      | (uid=*) |
+
+  Scenario Outline: The LDAP synchronization task respects ignore_other_scopes (set to no) when deleting non-LDAP users after the grace period
+    Given the following config values are set as admin:
+      | config                         | value                       | plugin             |
+      | contexts                       | ou=scoped,dc=example,dc=org | auth_ldap_syncplus |
+      | removeuser                     | 3                           | auth_ldap_syncplus |
+      | removeuser_graceperiod         | 2                           | auth_ldap_syncplus |
+      | sync_script_createuser_enabled | 0                           | auth_ldap_syncplus |
+      | sync_authtype                  | shibboleth                  | auth_ldap_syncplus |
+      | sync_scope                     | @example.org                | auth_ldap_syncplus |
+      | sync_filter                    | <filter>                    | auth_ldap_syncplus |
+      | ignore_other_scopes            | 0                           | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username           | firstname | lastname | email              | auth       |
+      | user03@example.org | User      | 03       | user03@example.org | shibboleth |
+      | user04@example.net | User      | 04net    | user04@example.net | shibboleth |
+    When I log in as "admin"
+    And I navigate to "Users > Accounts > Browse list of users" in site administration
+    And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "User 04net" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Suspended" in the "User 03" "table_row"
+    And I should not see "Suspended" in the "User 04net" "table_row"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I reload the page
+    Then I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "Suspended" in the "User 03" "table_row"
+    And I should see "User 04net" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "Suspended" in the "User 04net" "table_row"
+    And I pretend the suspended user "user03@example.org" was suspended "3" days ago
+    And I pretend the suspended user "user04@example.net" was suspended "3" days ago
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I reload the page
+    Then I should not see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "User 04net" in the "[data-region='report-user-list-wrapper']" "css_element"
+
+    Examples:
+      | filter  |
+      |         |
+      | (uid=*) |
+
+  Scenario Outline: The LDAP synchronization task respects ignore_other_scopes when updating non-LDAP users outside sync_scope
+    Given the following config values are set as admin:
+      | config                | value                       | plugin             |
+      | contexts              | ou=scoped,dc=example,dc=org | auth_ldap_syncplus |
+      | sync_authtype         | shibboleth                  | auth_ldap_syncplus |
+      | sync_scope            | @example.org                | auth_ldap_syncplus |
+      | sync_filter           | <filter>                    | auth_ldap_syncplus |
+      | ignore_other_scopes   | 1                           | auth_ldap_syncplus |
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And the following "users" exist:
+      | username           | firstname | lastname | email              | auth       |
+      | user04@example.net | User      | 04net    | user04@example.net | shibboleth |
+    When I log in as "admin"
+    And I navigate to "Users > Accounts > Browse list of users" in site administration
+    And I should see "User 11" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "User 04net" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I press "Edit" action in the "User 11" report row
+    And I set the field "First name" to "Foo"
+    And I set the field "Last name" to "Bar"
+    And I press "Update profile"
+    And I press "Edit" action in the "User 04net" report row
+    And I set the field "First name" to "OtherScope"
+    And I set the field "Last name" to "Edited"
+    And I press "Update profile"
+    And I should see "Foo Bar" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "OtherScope Edited" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I run all adhoc tasks
+    And I reload the page
+    Then I should see "User 11" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Foo Bar" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "OtherScope Edited" in the "[data-region='report-user-list-wrapper']" "css_element"
+
+    Examples:
+      | filter  |
+      |         |
+      | (uid=*) |
 
   Scenario Outline: The LDAP synchronization task can be limited to a custom LDAP filter which excludes certain users
     Given the following config values are set as admin:
