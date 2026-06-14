@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2026-04-20 - Prepare compatibility for Moodle 5.2.
+
 ### v5.1-r3
 
 * 2026-05-18 - Refine the meaning and behaviour of the scope setting in the danger zone, resolves #50
