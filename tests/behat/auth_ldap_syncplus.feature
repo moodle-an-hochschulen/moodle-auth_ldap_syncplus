@@ -211,7 +211,8 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     Given the following config values are set as admin:
       | config            | value |
       | authloginviaemail | 1     |
-    When I follow "Log in"
+    # Navigate to the frontpage which redirects to the login page as forcelogin is enabled
+    When I am on site homepage
     And I set the field "Username" to "user01@example.org"
     And I set the field "Password" to "password1"
     And I press "Log in"
@@ -219,7 +220,8 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I should not see "Invalid login"
 
   Scenario: First login via username should be possible without an existing Moodle account (Countercheck / Moodle core behaviour)
-    When I follow "Log in"
+    # Navigate to the frontpage which redirects to the login page as forcelogin is enabled
+    When I am on site homepage
     And I set the field "Username" to "user01"
     And I set the field "Password" to "password1"
     And I press "Log in"
