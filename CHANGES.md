@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2026-08-10 - Bugfix: Abort the user synchronization if the LDAP search fails instead of running into an endless loop of failing LDAP searches when paged results are used, resolves #54 and MDL-89432.
+
 ### v5.2-r1
 
 * 2026-04-20 - Fix Behat tests which broke due to changes in Moodle 5.2

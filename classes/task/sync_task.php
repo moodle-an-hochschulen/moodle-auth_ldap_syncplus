@@ -78,7 +78,7 @@ class sync_task extends \core\task\scheduled_task {
             /** @var auth_plugin_ldap_syncplus $auth */
             $auth = get_auth_plugin('ldap_syncplus');
             $count = 0;
-            $auth->sync_users_update_callback(function ($users, $updatekeys) use (&$count) {
+            $success = $auth->sync_users_update_callback(function ($users, $updatekeys) use (&$count) {
                 $asynctask = new asynchronous_sync_task();
                 $asynctask->set_custom_data([
                     'users' => $users,
@@ -90,6 +90,12 @@ class sync_task extends \core\task\scheduled_task {
                 mtrace(sprintf(" %s (%d)", self::MTRACE_MSG, $count));
                 sleep(1);
             });
+
+            // If the synchronisation has been aborted, throw an exception to let the task fail.
+            // Otherwise, the task would be reported as successful even though the users have not been synced.
+            if ($success === false) {
+                throw new \moodle_exception('syncfailed', 'auth_ldap_syncplus');
+            }
         }
     }
 }
