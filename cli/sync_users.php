@@ -51,5 +51,11 @@ if (!$taskdisabled->get_disabled()) {
 }
 
 $ldapauth = get_auth_plugin('ldap_syncplus');
-$ldapauth->sync_users(true);
+$success = $ldapauth->sync_users(true);
+
+// If the synchronisation has been aborted, exit with a non-zero exit code.
+// Otherwise, the calling process (i.e. a cron job or a monitoring system) would not notice the failure.
+if ($success === false) {
+    cli_error('[AUTH LDAP SYNCPLUS] '.get_string('syncfailedcli', 'auth_ldap_syncplus'));
+}
 

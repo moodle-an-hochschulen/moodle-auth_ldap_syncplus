@@ -217,12 +217,14 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         }
 
         $ldappagedresults = ldap_paged_results_supported($this->config->ldap_version, $ldapconnection);
-        $ldapcookie = '';
         foreach ($contexts as $context) {
             $context = trim($context);
             if (empty($context)) {
                 continue;
             }
+
+            // The paged results cookie is only valid for the searches within the current context.
+            $ldapcookie = '';
 
             do {
                 if ($ldappagedresults) {
@@ -239,8 +241,21 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     $ldapresult = ldap_list($ldapconnection, $context, $filter, array($this->config->user_attribute),
                         0, -1, -1, LDAP_DEREF_NEVER, $servercontrols);
                 }
-                if(!$ldapresult) {
-                    continue;
+                if (!$ldapresult) {
+                    // The LDAP search failed, for example because the LDAP server has become unreachable in the
+                    // middle of the synchronisation.
+                    // We must not continue with the next loop iteration here:
+                    // Firstly, if paged results are used, the paged results cookie from the previous page would
+                    // still be set and we would repeat the very same failing search endlessly.
+                    // Secondly, and even more important, continuing would leave us with an incomplete list of LDAP
+                    // users which would result in a mass suspension or deletion of user accounts below.
+                    // Thus, we clean up and abort the synchronisation completely.
+                    mtrace(get_string('ldapsearcherror', 'auth_ldap_syncplus',
+                        (object) ['context' => $context, 'error' => ldap_error($ldapconnection)]));
+                    mtrace(get_string('syncabortedldapsearcherror', 'auth_ldap_syncplus'));
+                    $dbman->drop_table($table);
+                    $this->ldap_close();
+                    return false;
                 }
                 if ($ldappagedresults) {
                     // Get next server cookie to know if we'll need to continue searching.
@@ -664,6 +679,94 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
 
         mtrace(get_string('userentriestoupdatedone', 'auth_ldap_syncplus',
                 ['updated' => $usersupdated, 'skipped' => $usersskipped]));
+    }
+
+    /**
+     * Returns all usernames from LDAP
+     *
+     * This function is copied from auth_ldap to fix the handling of failed LDAP searches, see MDL-89432.
+     * It can be removed as soon as this fix has been integrated into all Moodle core versions which are
+     * supported by this plugin.
+     *
+     * @param $filter An LDAP search filter to select desired users
+     * @return array of LDAP user names converted to UTF-8
+     */
+    function ldap_get_userlist($filter='*') {
+        $fresult = array();
+
+        $ldapconnection = $this->ldap_connect();
+
+        if ($filter == '*') {
+           $filter = '(&('.$this->config->user_attribute.'=*)'.$this->config->objectclass.')';
+        }
+        $servercontrols = array();
+
+        $contexts = explode(';', $this->config->contexts);
+        if (!empty($this->config->create_context)) {
+            array_push($contexts, $this->config->create_context);
+        }
+
+        $ldap_pagedresults = ldap_paged_results_supported($this->config->ldap_version, $ldapconnection);
+        foreach ($contexts as $context) {
+            $context = trim($context);
+            if (empty($context)) {
+                continue;
+            }
+
+            // The paged results cookie is only valid for the searches within the current context.
+            $ldap_cookie = '';
+
+            do {
+                if ($ldap_pagedresults) {
+                    $servercontrols = array(array(
+                        'oid' => LDAP_CONTROL_PAGEDRESULTS, 'value' => array(
+                            'size' => $this->config->pagesize, 'cookie' => $ldap_cookie)));
+                }
+                if ($this->config->search_sub) {
+                    // Use ldap_search to find first user from subtree.
+                    $ldap_result = ldap_search($ldapconnection, $context, $filter, array($this->config->user_attribute),
+                        0, -1, -1, LDAP_DEREF_NEVER, $servercontrols);
+                } else {
+                    // Search only in this context.
+                    $ldap_result = ldap_list($ldapconnection, $context, $filter, array($this->config->user_attribute),
+                        0, -1, -1, LDAP_DEREF_NEVER, $servercontrols);
+                }
+                if (!$ldap_result) {
+                    // The LDAP search failed, for example because the LDAP server has become unreachable.
+                    // We must not continue with the next loop iteration here:
+                    // Firstly, if paged results are used, the paged results cookie from the previous page would
+                    // still be set and we would repeat the very same failing search endlessly.
+                    // Secondly, this function has no way to tell its callers that the returned list of users is
+                    // incomplete. An empty result is indistinguishable from 'this user does not exist in LDAP',
+                    // so silently ignoring the error would make user_exists() return a wrong answer.
+                    $this->ldap_close($ldap_pagedresults);
+                    throw new \moodle_exception('ldapsearcherror', 'auth_ldap_syncplus', '',
+                        (object) ['context' => $context, 'error' => ldap_error($ldapconnection)]);
+                }
+                if ($ldap_pagedresults) {
+                    // Get next server cookie to know if we'll need to continue searching.
+                    $ldap_cookie = '';
+                    // Get next cookie from controls.
+                    ldap_parse_result($ldapconnection, $ldap_result, $errcode, $matcheddn,
+                        $errmsg, $referrals, $controls);
+                    if (isset($controls[LDAP_CONTROL_PAGEDRESULTS]['value']['cookie'])) {
+                        $ldap_cookie = $controls[LDAP_CONTROL_PAGEDRESULTS]['value']['cookie'];
+                    }
+                }
+                $users = ldap_get_entries_moodle($ldapconnection, $ldap_result);
+                // Add found users to list.
+                for ($i = 0; $i < count($users); $i++) {
+                    $extuser = core_text::convert($users[$i][$this->config->user_attribute][0],
+                                                $this->config->ldapencoding, 'utf-8');
+                    array_push($fresult, $extuser);
+                }
+                unset($ldap_result); // Free mem.
+            } while ($ldap_pagedresults && !empty($ldap_cookie));
+        }
+
+        // If paged results were used, make sure the current connection is completely closed
+        $this->ldap_close($ldap_pagedresults);
+        return $fresult;
     }
 
     /**
