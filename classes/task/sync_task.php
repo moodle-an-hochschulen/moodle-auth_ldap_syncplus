@@ -74,9 +74,10 @@ class sync_task extends \core\task\scheduled_task {
      * @return boolean
      */
     public function execute() {
-        if (is_enabled_auth('ldap_syncplus') || auth_ldap_syncplus_sync_with_other_auth()) {
+        $authentication = \core\di::get(\core\authentication::class);
+        if ($authentication->is_enabled('ldap_syncplus') || auth_ldap_syncplus_sync_with_other_auth()) {
             /** @var auth_plugin_ldap_syncplus $auth */
-            $auth = get_auth_plugin('ldap_syncplus');
+            $auth = $authentication->get_plugin('ldap_syncplus');
             $count = 0;
             $auth->sync_users_update_callback(function ($users, $updatekeys) use (&$count) {
                 $asynctask = new asynchronous_sync_task();

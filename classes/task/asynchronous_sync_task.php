@@ -53,7 +53,7 @@ class asynchronous_sync_task extends adhoc_task {
         $data = $this->get_custom_data();
 
         /** @var auth_plugin_ldap $auth */
-        $auth = get_auth_plugin('ldap_syncplus');
+        $auth = \core\di::get(\core\authentication::class)->get_plugin('ldap_syncplus');
         $auth->update_users($data->users, $data->updatekeys);
 
         mtrace(sprintf(" %s (%d)", self::MTRACE_MSG, count($data->users)));

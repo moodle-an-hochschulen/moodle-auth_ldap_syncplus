@@ -707,7 +707,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         }
 
         // Get auth plugin.
-        $authplugin = get_auth_plugin('ldap_syncplus');
+        $authplugin = \core\di::get(\core\authentication::class)->get_plugin('ldap_syncplus');
 
         // If there is no email field mapping configured, we don't know where we can find the email adress in LDAP,
         // call parent hook and return.

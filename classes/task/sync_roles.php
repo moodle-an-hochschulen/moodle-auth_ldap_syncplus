@@ -71,8 +71,10 @@ class sync_roles extends \core\task\scheduled_task {
     public function execute() {
         global $DB;
 
-        if (is_enabled_auth('ldap_syncplus') || auth_ldap_syncplus_sync_with_other_auth()) {
-            $auth = get_auth_plugin('ldap_syncplus');
+        $authentication = \core\di::get(\core\authentication::class);
+
+        if ($authentication->is_enabled('ldap_syncplus') || auth_ldap_syncplus_sync_with_other_auth()) {
+            $auth = $authentication->get_plugin('ldap_syncplus');
             $users = $DB->get_records('user', ['auth' => 'ldap_syncplus']);
             foreach ($users as $user) {
                 $auth->sync_roles($user);

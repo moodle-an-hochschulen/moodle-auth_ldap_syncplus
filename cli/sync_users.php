@@ -37,7 +37,8 @@ require_once($CFG->dirroot.'/auth/ldap_syncplus/locallib.php');
 // Ensure errors are well explained
 set_debugging(DEBUG_DEVELOPER, true);
 
-if (!is_enabled_auth('ldap_syncplus') && !auth_ldap_syncplus_sync_with_other_auth()) {
+$authentication = \core\di::get(\core\authentication::class);
+if (!$authentication->is_enabled('ldap_syncplus') && !auth_ldap_syncplus_sync_with_other_auth()) {
         error_log('[AUTH LDAP SYNCPLUS] '.get_string('pluginnotenabled', 'auth_ldap'));
     die;
 }
@@ -50,6 +51,6 @@ if (!$taskdisabled->get_disabled()) {
     cli_error('[AUTH LDAP SYNCPLUS] The scheduled task sync_task is enabled, the cron execution has been aborted.');
 }
 
-$ldapauth = get_auth_plugin('ldap_syncplus');
+$ldapauth = $authentication->get_plugin('ldap_syncplus');
 $ldapauth->sync_users(true);
 
