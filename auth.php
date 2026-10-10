@@ -359,7 +359,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                         $updateuser = new stdClass();
                         $updateuser->id = $user->id;
                         $updateuser->suspended = 1;
-                        user_update_user($updateuser, false);
+                        \core\user::update_user($updateuser, false);
                         mtrace("\t".get_string('auth_dbsuspenduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                         \core\session\manager::destroy_user_sessions($user->id);
                     }
@@ -389,7 +389,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                         $updateuser->id = $user->id;
                         $updateuser->auth = $this->config->sync_authtype;
                         $updateuser->suspended = 0;
-                        user_update_user($updateuser, false);
+                        \core\user::update_user($updateuser, false);
                         mtrace("\t".get_string('auth_dbreviveduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                     }
 
@@ -422,7 +422,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     $updateuser->id = $user->id;
                     $updateuser->auth = $this->config->sync_authtype;
                     $updateuser->suspended = 0;
-                    user_update_user($updateuser, false);
+                    \core\user::update_user($updateuser, false);
                     mtrace("\t".get_string('auth_dbreviveduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                 }
 
@@ -455,7 +455,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     $updateuser->id = $user->id;
                     $updateuser->suspended = 1;
                     $updateuser->timemodified = time(); // Remember suspend time, abuse timemodified column for this.
-                    user_update_user($updateuser, false);
+                    \core\user::update_user($updateuser, false);
                     mtrace("\t".get_string('auth_dbsuspenduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                     \core\session\manager::destroy_user_sessions($user->id);
                 }
@@ -578,9 +578,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     // Add the scope to the username for adding the user in the DB.
                     $user->username = $this->add_scope_to_username($user->username);
 
-                    // $id = user_create_user($user, false);
                     try {
-                        $id = user_create_user($user, false);
+                        $id = \core\user::create_user($user, false);
                     } catch (Exception $e) {
                         mtrace(get_string('invaliduserexception', 'auth_ldap', print_r($user, true) .  $e->getMessage()));
                         $errors++;

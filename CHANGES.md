@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2026-10-10 - Upstream changes: Replace the deprecated user_create_user() and user_update_user() functions with their \core\user replacements, following auth_ldap in Moodle 5.3 core (MDL-82650).
 * 2026-10-05 - Prepare compatibility for Moodle 5.3.
 
 ### v5.2-r1
