@@ -9,7 +9,7 @@ Moodle authentication plugin which provides all functionality of auth_ldap, but 
 Requirements
 ------------
 
-This plugin requires Moodle 5.2+
+This plugin requires Moodle 5.3+
 
 
 Motivation for this plugin
