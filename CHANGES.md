@@ -4,7 +4,7 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
-### Unreleased
+### v5.3-r1
 
 * 2026-10-10 - Upstream changes: Use the new \core\authentication DI class instead of get_auth_plugin() and is_enabled_auth(), following auth_ldap in Moodle 5.3 core (MDL-88580).
 * 2026-10-10 - Upstream changes: Replace the deprecated user_create_user() and user_update_user() functions with their \core\user replacements, following auth_ldap in Moodle 5.3 core (MDL-82650).
