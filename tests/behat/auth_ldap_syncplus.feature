@@ -683,3 +683,115 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | shibboleth | Shibboleth | dc=example,dc=org               |              | (&(!(ou:dn:=scoped))(uid=*))        | 01          | should           | 11          | should not       |
       | shibboleth | Shibboleth | dc=example,dc=org               |              | (&(!(ou:dn:=scoped))(uid=*))        | 01          | should           | 11          | should not       |
       | shibboleth | Shibboleth | dc=example,dc=org               | @example.org | (&(!(ou:dn:=scoped))(uid=*))        | 01          | should           | 11          | should not       |
+
+  # The following scenarios verify that a sync scope with a single quote is bound as SQL parameter and does not break
+  # the sync queries. If any sync query broke, the scheduled task would fail and so would the scenario.
+  # The Moodle user in each example has the realistic scope @example.org, so no username with a single quote is needed.
+  # As the configured scope differs from the user's scope, the user does not match any LDAP user from the sync's point
+  # of view. User creation is disabled in the first three scenario outlines, the user addition query is covered by the
+  # last scenario.
+  Scenario Outline: The LDAP synchronization task does not break if the sync scope contains a single quote (active users)
+    Given the following config values are set as admin:
+      | config                         | value                       | plugin             |
+      | contexts                       | ou=scoped,dc=example,dc=org | auth_ldap_syncplus |
+      | removeuser                     | <removeuser>                | auth_ldap_syncplus |
+      | removeuser_graceperiod         | 2                           | auth_ldap_syncplus |
+      | sync_script_createuser_enabled | 0                           | auth_ldap_syncplus |
+      | sync_authtype                  | shibboleth                  | auth_ldap_syncplus |
+      | sync_scope                     | @o'brien.example.org        | auth_ldap_syncplus |
+      | ignore_other_scopes            | <ignoreotherscopes>         | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username           | firstname | lastname | email              | auth       |
+      | user03@example.org | User      | 03       | user03@example.org | shibboleth |
+    When I log in as "admin"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I navigate to "Users > Accounts > Browse list of users" in site administration
+    Then I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I <suspendedshouldornot> see "Suspended" in the "User 03" "table_row"
+
+    # Example 1: Suspend query - the user does not exist in LDAP with the configured scope, so the user is suspended.
+    # Example 2: Grace period suspend query - the user does not exist in LDAP with the configured scope,
+    #            so the user is suspended.
+    # Example 3: Full delete query with the ignore_other_scopes LIKE filter - the user has another scope than
+    #            the configured scope, so the user is neither deleted nor suspended.
+    Examples:
+      | removeuser | ignoreotherscopes | suspendedshouldornot |
+      | 1          | 0                 | should               |
+      | 3          | 0                 | should               |
+      | 2          | 1                 | should not           |
+
+  Scenario Outline: The LDAP synchronization task does not break if the sync scope contains a single quote (suspended users)
+    Given the following config values are set as admin:
+      | config                         | value                       | plugin             |
+      | contexts                       | ou=scoped,dc=example,dc=org | auth_ldap_syncplus |
+      | removeuser                     | <removeuser>                | auth_ldap_syncplus |
+      | removeuser_graceperiod         | 2                           | auth_ldap_syncplus |
+      | sync_script_createuser_enabled | 0                           | auth_ldap_syncplus |
+      | sync_authtype                  | shibboleth                  | auth_ldap_syncplus |
+      | sync_scope                     | @o'brien.example.org        | auth_ldap_syncplus |
+      | ignore_other_scopes            | 0                           | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username           | firstname | lastname | email              | auth       |
+      | user11@example.org | User      | 11       | user11@example.org | shibboleth |
+    When I log in as "admin"
+    And I pretend the suspended user "user11@example.org" was suspended "1" days ago
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I navigate to "Users > Accounts > Browse list of users" in site administration
+    Then I should see "User 11" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "Suspended" in the "User 11" "table_row"
+
+    # Example 1: Revive query - user11 exists in LDAP, but it does not match the Moodle user due to the configured scope,
+    #            so the user is not revived and stays suspended.
+    # Example 2: Grace period revive query - same as example 1. Additionally, the grace period has not passed yet,
+    #            so the user is not deleted either.
+    Examples:
+      | removeuser |
+      | 1          |
+      | 3          |
+
+  Scenario Outline: The LDAP synchronization task does not break if the sync scope contains a single quote (deleted users)
+    Given the following config values are set as admin:
+      | config                         | value                       | plugin             |
+      | contexts                       | ou=scoped,dc=example,dc=org | auth_ldap_syncplus |
+      | removeuser                     | <removeuser>                | auth_ldap_syncplus |
+      | removeuser_graceperiod         | 2                           | auth_ldap_syncplus |
+      | sync_script_createuser_enabled | 0                           | auth_ldap_syncplus |
+      | sync_authtype                  | shibboleth                  | auth_ldap_syncplus |
+      | sync_scope                     | @o'brien.example.org        | auth_ldap_syncplus |
+      | ignore_other_scopes            | 0                           | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username           | firstname | lastname | email              | auth       |
+      | user03@example.org | User      | 03       | user03@example.org | shibboleth |
+    When I log in as "admin"
+    And I pretend the suspended user "user03@example.org" was suspended "<suspendeddaysago>" days ago
+    And I navigate to "Users > Accounts > Browse list of users" in site administration
+    And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I reload the page
+    Then I should not see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
+
+    # Example 1: Full delete query - the user does not exist in LDAP with the configured scope, so the user is deleted.
+    #            The full delete query deletes suspended users as well, so the previous suspension does not matter here.
+    # Example 2: Grace period delete query - the user does not exist in LDAP with the configured scope and
+    #            the grace period has passed, so the user is deleted.
+    Examples:
+      | removeuser | suspendeddaysago |
+      | 2          | 1                |
+      | 3          | 3                |
+
+  # User addition query - user11 and user12 exist in LDAP, but not in Moodle, so the query finds them and the sync
+  # tries to create them with the configured scope appended to their usernames. Moodle rejects these usernames as
+  # they contain a single quote. The sync catches this error per user, so the scheduled task does not fail,
+  # but no user is created.
+  Scenario: The LDAP synchronization task does not break if the sync scope contains a single quote (user addition)
+    Given the following config values are set as admin:
+      | config                         | value                       | plugin             |
+      | contexts                       | ou=scoped,dc=example,dc=org | auth_ldap_syncplus |
+      | sync_script_createuser_enabled | 1                           | auth_ldap_syncplus |
+      | sync_authtype                  | shibboleth                  | auth_ldap_syncplus |
+      | sync_scope                     | @o'brien.example.org        | auth_ldap_syncplus |
+    When I log in as "admin"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I navigate to "Users > Accounts > Browse list of users" in site administration
+    Then I should not see "User 11" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "User 12" in the "[data-region='report-user-list-wrapper']" "css_element"
