@@ -584,6 +584,9 @@ if ($ADMIN->fulltree) {
         );
         $scopenotification->set_show_closebutton(false);
         $description = get_string('sync_scope_desc', 'auth_ldap_syncplus') . '<br />' . $OUTPUT->render($scopenotification);
+        // The value is intentionally not restricted beyond PARAM_RAW_TRIMMED (e.g. to an @domain pattern).
+        // It is always bound as an SQL parameter (and LIKE-escaped) in auth.php, so it cannot alter the sync queries,
+        // and stricter validation could reject scope values which are already configured on existing sites.
         $settings->add(new auth_ldap_admin_setting_special_lowercase_configtext(
             'auth_ldap_syncplus/sync_scope',
             get_string('sync_scope', 'auth_ldap_syncplus', null, true),
