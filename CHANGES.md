@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2026-10-28 - Improvement: Bind the sync scope setting as SQL parameter in the sync queries instead of concatenating it into the SQL and escape it when it is used as LIKE pattern.
+
 ### v5.3-r1
 
 * 2026-10-10 - Upstream changes: Use the new \core\authentication DI class instead of get_auth_plugin() and is_enabled_auth(), following auth_ldap in Moodle 5.3 core (MDL-88580).
