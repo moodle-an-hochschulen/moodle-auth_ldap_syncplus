@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2026-10-28 - Improvement: Bind the sync scope setting as SQL parameter in the sync queries instead of concatenating it into the SQL and escape it when it is used as LIKE pattern.
+
 ### v4.5-r7
 
 * 2026-05-18 - Refine the meaning and behaviour of the scope setting in the danger zone, resolves #50
