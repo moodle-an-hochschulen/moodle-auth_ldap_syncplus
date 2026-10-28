@@ -317,6 +317,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                                $this->get_remove_users_scope_filter_sql_snippet('u.username');
                 $remove_users = $DB->get_records_sql($sql, array_merge(
                     ['auth' => $this->config->sync_authtype],
+                    $this->get_sync_scope_sql_joinon_params(),
                     $this->get_remove_users_scope_filter_sql_params()
                 ));
 
@@ -349,6 +350,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                                $this->get_remove_users_scope_filter_sql_snippet('u.username');
                 $remove_users = $DB->get_records_sql($sql, array_merge(
                     ['auth' => $this->config->sync_authtype],
+                    $this->get_sync_scope_sql_joinon_params(),
                     $this->get_remove_users_scope_filter_sql_params()
                 ));
 
@@ -377,9 +379,12 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                           FROM {user} u
                           JOIN {tmp_extuser} e ON (u.username = (".$this->get_sync_scope_sql_joinon_snippet('e.username').")
                                 AND u.mnethostid = e.mnethostid)
-                         WHERE (u.auth = 'nologin' OR (u.auth = ? AND u.suspended = 1)) AND u.deleted = 0";
+                         WHERE (u.auth = 'nologin' OR (u.auth = :auth AND u.suspended = 1)) AND u.deleted = 0";
                 // Note: 'nologin' is there for backwards compatibility.
-                $revive_users = $DB->get_records_sql($sql, array($this->config->sync_authtype));
+                $revive_users = $DB->get_records_sql($sql, array_merge(
+                    ['auth' => $this->config->sync_authtype],
+                    $this->get_sync_scope_sql_joinon_params()
+                ));
 
                 if (!empty($revive_users)) {
                     mtrace(get_string('userentriestorevive', 'auth_ldap', count($revive_users)));
@@ -410,9 +415,12 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                       FROM {user} u
                       JOIN {tmp_extuser} e ON (u.username = (".$this->get_sync_scope_sql_joinon_snippet('e.username').")
                             AND u.mnethostid = e.mnethostid)
-                     WHERE (u.auth = 'nologin' OR (u.auth = ? AND u.suspended = 1)) AND u.deleted = 0";
+                     WHERE (u.auth = 'nologin' OR (u.auth = :auth AND u.suspended = 1)) AND u.deleted = 0";
             // Note: 'nologin' is there for backwards compatibility.
-            $revive_users = $DB->get_records_sql($sql, array($this->config->sync_authtype));
+            $revive_users = $DB->get_records_sql($sql, array_merge(
+                ['auth' => $this->config->sync_authtype],
+                $this->get_sync_scope_sql_joinon_params()
+            ));
 
             if (!empty($revive_users)) {
                 mtrace(get_string('userentriestorevive', 'auth_ldap', count($revive_users)));
@@ -444,6 +452,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                            $this->get_remove_users_scope_filter_sql_snippet('u.username');
             $remove_users = $DB->get_records_sql($sql, array_merge(
                 ['auth' => $this->config->sync_authtype],
+                $this->get_sync_scope_sql_joinon_params(),
                 $this->get_remove_users_scope_filter_sql_params()
             ));
 
@@ -477,6 +486,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                            $this->get_remove_users_scope_filter_sql_snippet('u.username');
             $remove_users = $DB->get_records_sql($sql, array_merge(
                 ['auth' => $this->config->sync_authtype],
+                $this->get_sync_scope_sql_joinon_params(),
                 $this->get_remove_users_scope_filter_sql_params()
             ));
 
@@ -544,7 +554,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                       LEFT JOIN {user} u ON (('.$this->get_sync_scope_sql_joinon_snippet('e.username').') = u.username
                             AND e.mnethostid = u.mnethostid)
                      WHERE u.id IS NULL';
-            $add_users = $DB->get_records_sql($sql);
+            $add_users = $DB->get_records_sql($sql, $this->get_sync_scope_sql_joinon_params());
 
             if (!empty($add_users)) {
                 mtrace(get_string('userentriestoadd', 'auth_ldap', count($add_users)));
@@ -807,10 +817,25 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         }
 
         // If a sync scope is configured, we need to concat it to the userfield.
-        $scopesql = $DB->sql_concat($userfield, "'".$this->config->sync_scope."'");
+        // The scope value itself is bound via get_sync_scope_sql_joinon_params().
+        $scopesql = $DB->sql_concat($userfield, ':syncscope');
 
         // Return the SQL fragment.
         return $scopesql;
+    }
+
+    /**
+     * Returns bound parameters for get_sync_scope_sql_joinon_snippet().
+     *
+     * @return array Empty array if no sync scope is used; otherwise ['syncscope' => '<sync_scope>']
+     */
+    private function get_sync_scope_sql_joinon_params(): array {
+        // If the sync auth method is still LDAP SyncPlus or if no sync scope is configured, there is nothing to bind.
+        if ($this->config->sync_authtype == 'ldap_syncplus' || empty($this->config->sync_scope)) {
+            return [];
+        }
+
+        return ['syncscope' => $this->config->sync_scope];
     }
 
     /**
@@ -852,14 +877,17 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
     /**
      * Returns bound parameters for get_remove_users_scope_filter_sql_snippet().
      *
-     * @return array Empty array if filtering is disabled; otherwise ['scope' => '%<sync_scope>']
+     * @return array Empty array if filtering is disabled; otherwise ['scope' => '%<LIKE-escaped sync_scope>']
      */
     private function get_remove_users_scope_filter_sql_params(): array {
+        global $DB;
+
         if (!$this->is_ignore_other_scopes_enabled()) {
             return [];
         }
 
-        return ['scope' => '%' . $this->config->sync_scope];
+        // Escape the scope so that LIKE wildcards (% and _) in it are matched literally.
+        return ['scope' => '%' . $DB->sql_like_escape($this->config->sync_scope)];
     }
 
     /**
