@@ -792,10 +792,9 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         if (count($uidsfound) != 1) {
             parent::loginpage_hook(); // Call parent function to retain its functionality.
             return;
-
+        } else {
             // Success!
             // Replace the form data's username with the user attribute from LDAP, it will be held in the global $frm variable.
-        } else {
             $frm->username = $uidsfound[0];
             parent::loginpage_hook(); // Call parent function to retain its functionality.
             return;
