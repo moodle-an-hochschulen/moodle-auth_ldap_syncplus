@@ -4,6 +4,12 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2026-10-28 - Bugfix: The upgrade step at version 2021072003 (adopted from MDL-69492 in auth_ldap) wrote the normalized memberattribute_isdn setting of this plugin to the auth_ldap component instead of auth_ldap_syncplus. The faulty upgrade step was corrected and a new upgrade step normalizes this plugin's setting again.
+               Please note: This affected sites which upgraded from v3.11-r2 or older. On these sites, the core auth_ldap/memberattribute_isdn setting was overwritten with this plugin's value. This can't be restored automatically, so if you use core auth_ldap alongside this plugin on such a site, please verify the "Member attribute uses dn" setting of core auth_ldap manually.
+* 2026-10-28 - Improvement: Bind the sync scope setting as SQL parameter in the sync queries instead of concatenating it into the SQL and escape it when it is used as LIKE pattern.
+
 ### v5.3-r1
 
 * 2026-10-10 - Upstream changes: Use the new \core\authentication DI class instead of get_auth_plugin() and is_enabled_auth(), following auth_ldap in Moodle 5.3 core (MDL-88580).
