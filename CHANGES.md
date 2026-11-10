@@ -4,7 +4,7 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
-### Unreleased
+### v5.1-r4
 
 * 2026-10-28 - Bugfix: The upgrade step at version 2021072003 (adopted from MDL-69492 in auth_ldap) wrote the normalized memberattribute_isdn setting of this plugin to the auth_ldap component instead of auth_ldap_syncplus. The faulty upgrade step was corrected and a new upgrade step normalizes this plugin's setting again.
                Please note: This affected sites which upgraded from v3.11-r2 or older. On these sites, the core auth_ldap/memberattribute_isdn setting was overwritten with this plugin's value. This can't be restored automatically, so if you use core auth_ldap alongside this plugin on such a site, please verify the "Member attribute uses dn" setting of core auth_ldap manually.
