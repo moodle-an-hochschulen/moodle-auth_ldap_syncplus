@@ -4,6 +4,10 @@ moodle-auth_ldap_syncplus
 Changes
 -------
 
+### Unreleased
+
+* 2026-11-18 - Upstream changes: Remove the obsolete PHP 4-style constructor auth_plugin_ldap_syncplus(), following auth_ldap in Moodle 5.2 core (MDL-82284).
+
 ### v5.2-r2
 
 * 2026-10-28 - Bugfix: The upgrade step at version 2021072003 (adopted from MDL-69492 in auth_ldap) wrote the normalized memberattribute_isdn setting of this plugin to the auth_ldap component instead of auth_ldap_syncplus. The faulty upgrade step was corrected and a new upgrade step normalizes this plugin's setting again.
