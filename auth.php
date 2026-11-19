@@ -706,88 +706,91 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             return;
         }
 
-        // Get auth plugin.
-        $authplugin = \core\di::get(\core\authentication::class)->get_plugin('ldap_syncplus');
-
         // If there is no email field mapping configured, we don't know where we can find the email adress in LDAP,
         // call parent hook and return.
-        if (empty($authplugin->config->field_map_email)) {
+        if (empty($this->config->field_map_email)) {
             parent::loginpage_hook(); // Call parent function to retain its functionality.
             return;
         }
 
         // Prepare LDAP search.
-        $contexts = explode(';', $authplugin->config->contexts);
-        $filter = '(&('.$authplugin->config->field_map_email.'='.ldap_filter_addslashes($email).')'.
-                $authplugin->config->objectclass.')';
+        $contexts = explode(';', $this->config->contexts);
+        $filter = '(&('.$this->config->field_map_email.'='.ldap_filter_addslashes($email).')'.
+                $this->config->objectclass.')';
 
         // Connect to LDAP.
-        $ldapconnection = $authplugin->ldap_connect();
+        $ldapconnection = $this->ldap_connect();
 
-        // Array for saving the user's ids which are found in the configured LDAP contexts.
-        $uidsfound = array();
+        // Make sure that the LDAP connection is closed again, regardless of how we leave the search.
+        try {
+            // Array for saving the user's ids which are found in the configured LDAP contexts.
+            $uidsfound = array();
 
-        // Look for users matching the given email adress in LDAP.
-        foreach ($contexts as $context) {
-            // Verify that the given context is valid.
-            $context = trim($context);
-            if (empty($context)) {
-                continue;
+            // Look for users matching the given email adress in LDAP.
+            foreach ($contexts as $context) {
+                // Verify that the given context is valid.
+                $context = trim($context);
+                if (empty($context)) {
+                    continue;
+                }
+
+                // Search LDAP.
+                if ($this->config->search_sub) {
+                    // Use ldap_search to find first user from subtree.
+                    $ldapresult = ldap_search($ldapconnection, $context, $filter, array($this->config->user_attribute));
+                } else {
+                    // Search only in this context.
+                    $ldapresult = ldap_list($ldapconnection, $context, $filter, array($this->config->user_attribute));
+                }
+
+                // If there is no LDAP result or if the user was not found in this context, continue with next context.
+                if (!$ldapresult || ldap_count_entries($ldapconnection, $ldapresult) == 0) {
+                    continue;
+                }
+
+                // If there is not exactly one matching user, we can't continue, call parent hook and return.
+                if (ldap_count_entries($ldapconnection, $ldapresult) != 1) {
+                    parent::loginpage_hook(); // Call parent function to retain its functionality.
+                    return;
+                }
+
+                // Get this one matching user entry.
+                if (!$ldapentry = ldap_first_entry($ldapconnection, $ldapresult)) {
+                    parent::loginpage_hook(); // Call parent function to retain its functionality.
+                    return;
+                }
+
+                // Get the uid attribute's value(s) from this user entry.
+                $values = ldap_get_values($ldapconnection, $ldapentry, $this->config->user_attribute);
+
+                // If there is not exactly one copy of the uid attribute in the LDAP user entry, we don't know which one to use,
+                // call parent hook and return.
+                if ($values['count'] != 1) {
+                    parent::loginpage_hook(); // Call parent function to retain its functionality.
+                    return;
+                }
+
+                // Remember this one user's uid attribute.
+                $uidsfound[] = $values[0];
+
+                unset($ldapresult); // Free mem!
             }
 
-            // Search LDAP.
-            if ($authplugin->config->search_sub) {
-                // Use ldap_search to find first user from subtree.
-                $ldapresult = ldap_search($ldapconnection, $context, $filter, array($authplugin->config->user_attribute));
+            // After we have checked all contexts, verify that we have found only one user in total.
+            // If not, we can't continue, call parent hook and return.
+            if (count($uidsfound) != 1) {
+                parent::loginpage_hook(); // Call parent function to retain its functionality.
+                return;
             } else {
-                // Search only in this context.
-                $ldapresult = ldap_list($ldapconnection, $context, $filter, array($authplugin->config->user_attribute));
-            }
-
-            // If there is no LDAP result or if the user was not found in this context, continue with next context.
-            if (!$ldapresult || ldap_count_entries($ldapconnection, $ldapresult) == 0) {
-                continue;
-            }
-
-            // If there is not exactly one matching user, we can't continue, call parent hook and return.
-            if (ldap_count_entries($ldapconnection, $ldapresult) != 1) {
+                // Success!
+                // Replace the form data's username with the user attribute from LDAP, it will be held in the global $frm variable.
+                $frm->username = $uidsfound[0];
                 parent::loginpage_hook(); // Call parent function to retain its functionality.
                 return;
             }
-
-            // Get this one matching user entry.
-            if (!$ldapentry = ldap_first_entry($ldapconnection, $ldapresult)) {
-                parent::loginpage_hook(); // Call parent function to retain its functionality.
-                return;
-            }
-
-            // Get the uid attribute's value(s) from this user entry.
-            $values = ldap_get_values($ldapconnection, $ldapentry, $authplugin->config->user_attribute);
-
-            // If there is not exactly one copy of the uid attribute in the LDAP user entry, we don't know which one to use,
-            // call parent hook and return.
-            if ($values['count'] != 1) {
-                parent::loginpage_hook(); // Call parent function to retain its functionality.
-                return;
-            }
-
-            // Remember this one user's uid attribute.
-            $uidsfound[] = $values[0];
-
-            unset($ldapresult); // Free mem!
-        }
-
-        // After we have checked all contexts, verify that we have found only one user in total.
-        // If not, we can't continue, call parent hook and return.
-        if (count($uidsfound) != 1) {
-            parent::loginpage_hook(); // Call parent function to retain its functionality.
-            return;
-        } else {
-            // Success!
-            // Replace the form data's username with the user attribute from LDAP, it will be held in the global $frm variable.
-            $frm->username = $uidsfound[0];
-            parent::loginpage_hook(); // Call parent function to retain its functionality.
-            return;
+        } finally {
+            // Close the LDAP connection.
+            $this->ldap_close();
         }
     }
 
