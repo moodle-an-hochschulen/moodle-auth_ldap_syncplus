@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2026-11-19 - Bugfix: The ad-hoc task for updating users failed with a TypeError if the "Sync update users chunk size" setting was set to 0 or empty. This bug was adopted from auth_ldap in Moodle core where it is tracked as MDL-89516.
 * 2026-11-19 - Improvement: Close the LDAP connection again which is opened for the login via email lookup on the login page and use the current auth plugin instance for this lookup instead of a second one.
 * 2026-11-18 - Upstream changes: Remove the obsolete PHP 4-style constructor auth_plugin_ldap_syncplus(), following auth_ldap in Moodle 5.2 core (MDL-82284).
 

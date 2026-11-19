@@ -519,6 +519,12 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 ],
                 $this->get_remove_users_scope_filter_sql_params()
             ));
+            // Drop the username keys of the users array. Otherwise, if the users are not updated in chunks, the array is
+            // stored as JSON object in the ad-hoc task's custom data and the ad-hoc task fails as it gets a stdClass
+            // instead of an array. This is a bug in auth_ldap core and is fixed here the same way as in MDL-89516 which is still
+            // in the works.
+            $users = array_values($users);
+
             if (!empty($users)) {
                 // Update users in chunks as specified in sync_updateuserchunk.
                 if (!empty($this->config->sync_updateuserchunk)) {
