@@ -1023,7 +1023,15 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         }
 
         // If a sync scope is configured, we need to strip it from the username.
-        return str_replace($this->config->sync_scope, '', $username);
+        // The scope is a suffix, so it is only stripped from the end of the username and only once. Any other occurrence
+        // of the scope string within the username is part of the username and must be kept, otherwise the user
+        // would be mapped to another user in LDAP.
+        if (str_ends_with($username, $this->config->sync_scope)) {
+            return substr($username, 0, -strlen($this->config->sync_scope));
+        }
+
+        // If the username does not end with the scope, return the username as is.
+        return $username;
     }
 
     /**

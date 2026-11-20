@@ -999,3 +999,73 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | ignore_other_scopes |
       | 0                   |
       | 1                   |
+
+  # The scope is a suffix and must only be stripped from the end of the username when a user is looked up in LDAP.
+  # The tricky user contains the scope string in the middle of the username or twice. If the scope string was stripped
+  # everywhere, the tricky user would be looked up as user11 in LDAP and would wrongly be updated with the profile
+  # fields of user11.
+  # user11@example.org is the countercheck: This user is looked up as user11 in LDAP and is updated.
+  Scenario Outline: The LDAP synchronization task strips the sync scope only from the end of the username when updating non-LDAP users
+    Given the following config values are set as admin:
+      | config                         | value                       | plugin             |
+      | contexts                       | ou=scoped,dc=example,dc=org | auth_ldap_syncplus |
+      | sync_script_createuser_enabled | 0                           | auth_ldap_syncplus |
+      | sync_authtype                  | shibboleth                  | auth_ldap_syncplus |
+      | sync_scope                     | @example.org                | auth_ldap_syncplus |
+      | ignore_other_scopes            | <ignore_other_scopes>       | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username           | firstname | lastname | email              | auth       |
+      | user11@example.org | Foo       | Bar      | user11@example.org | shibboleth |
+      | <trickyusername>   | Tricky    | Scope    | tricky@example.org | shibboleth |
+    When I log in as "admin"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I run all adhoc tasks
+    And I navigate to "Users > Accounts > Browse list of users" in site administration
+    Then I should see "User 11" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Foo Bar" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "Tricky Scope" in the "[data-region='report-user-list-wrapper']" "css_element"
+
+    # Example 1: The scope string is in the middle of the username and users outside the scope are not ignored,
+    #            so the user is processed, but is not found in LDAP.
+    # Example 2: The scope string is in the middle of the username and users outside the scope are ignored,
+    #            so the user is not processed at all.
+    # Example 3 and 4: The username contains the scope string twice and ends with it, so the user is inside the scope
+    #            and is processed regardless of the ignore_other_scopes setting, but is not found in LDAP.
+    Examples:
+      | trickyusername                 | ignore_other_scopes |
+      | user@example.org11             | 0                   |
+      | user@example.org11             | 1                   |
+      | user@example.org11@example.org | 0                   |
+      | user@example.org11@example.org | 1                   |
+
+  # This is the same check as in the previous scenario, but for the roles synchronization task.
+  # If the scope string was stripped everywhere, the tricky user would be looked up as user11 in LDAP, who is a member
+  # of the mapped group, and would wrongly get the role.
+  # user11@example.org is the countercheck: This user is looked up as user11 in LDAP and gets the role.
+  Scenario Outline: The LDAP roles synchronization task strips the sync scope only from the end of the username
+    Given the following config values are set as admin:
+      | config               | value                                  | plugin             |
+      | contexts             | ou=scoped,dc=example,dc=org            | auth_ldap_syncplus |
+      | sync_authtype        | shibboleth                             | auth_ldap_syncplus |
+      | sync_scope           | @example.org                           | auth_ldap_syncplus |
+      | ignore_other_scopes  | <ignore_other_scopes>                  | auth_ldap_syncplus |
+      | memberattribute      | member                                 | auth_ldap_syncplus |
+      | memberattribute_isdn | 1                                      | auth_ldap_syncplus |
+      | managercontext       | cn=group01,ou=groups,dc=example,dc=org | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username           | firstname | lastname | email              | auth       |
+      | user11@example.org | User      | 11       | user11@example.org | shibboleth |
+      | <trickyusername>   | Tricky    | Scope    | tricky@example.org | shibboleth |
+    When I log in as "admin"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_roles"
+    And I navigate to "Users > Permissions > Assign system roles" in site administration
+    Then I should see "User 11" in the "Manager" "table_row"
+    And I should not see "Tricky Scope" in the "Manager" "table_row"
+
+    # See the previous scenario for the explanation of the examples.
+    Examples:
+      | trickyusername                 | ignore_other_scopes |
+      | user@example.org11             | 0                   |
+      | user@example.org11             | 1                   |
+      | user@example.org11@example.org | 0                   |
+      | user@example.org11@example.org | 1                   |

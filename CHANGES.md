@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2026-11-21 - Bugfix: The username scope was removed from every position within a username instead of from the end of the username only when a non-LDAP user was looked up in LDAP. This way, a user whose username contained the scope string in the middle or more than once could have been mapped to another user in LDAP.
 * 2026-11-20 - Bugfix: The roles synchronization task did not respect the "Moodle authentication type when synchronizing users" and "Username scope when synchronizing users" settings and thus did not synchronize the system roles of non-LDAP users. In addition to that, system roles of non-LDAP users with a username scope were wrongly removed again when the users were created or updated by the user synchronization task.
 * 2026-11-19 - Improvement: The synchronization task does not suspend the guest user and site admins with manual authentication anymore if it is used to sync users with another authentication type than LDAP, following the same rule which Moodle core applies when deleting users. When deleting users, these accounts are now skipped with a proper message in the task log as well instead of relying on the refusal by Moodle core.
 * 2026-11-19 - Bugfix: The ad-hoc task for updating users failed with a TypeError if the "Sync update users chunk size" setting was set to 0 or empty. This bug was adopted from auth_ldap in Moodle core where it is tracked as MDL-89516.
