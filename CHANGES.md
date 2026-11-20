@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2026-11-19 - Improvement: The synchronization task does not suspend the guest user and site admins with manual authentication anymore if it is used to sync users with another authentication type than LDAP, following the same rule which Moodle core applies when deleting users. When deleting users, these accounts are now skipped with a proper message in the task log as well instead of relying on the refusal by Moodle core.
 * 2026-11-19 - Bugfix: The ad-hoc task for updating users failed with a TypeError if the "Sync update users chunk size" setting was set to 0 or empty. This bug was adopted from auth_ldap in Moodle core where it is tracked as MDL-89516.
 * 2026-11-19 - Improvement: Close the LDAP connection again which is opened for the login via email lookup on the login page and use the current auth plugin instance for this lookup instead of a second one.
 * 2026-11-18 - Upstream changes: Remove the obsolete PHP 4-style constructor auth_plugin_ldap_syncplus(), following auth_ldap in Moodle 5.2 core (MDL-82284).

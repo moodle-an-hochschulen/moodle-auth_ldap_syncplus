@@ -795,3 +795,117 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     Then I should not see "User 11" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "User 12" in the "[data-region='report-user-list-wrapper']" "css_element"
+
+  # The guest user and the admin user are manual users who do not exist in LDAP, just like user03.
+  # If the sync task is (mis)configured to sync manual users, user03 is suspended / deleted as expected,
+  # but the guest user and the internal site admin must be skipped.
+  # The checks are done directly in the database as the guest user is not shown in the user list.
+  Scenario Outline: The LDAP synchronization task does not suspend or delete the guest user and internal site admins when it is re-used for manual users
+    Given the following config values are set as admin:
+      | config                         | value        | plugin             |
+      | removeuser                     | <removeuser> | auth_ldap_syncplus |
+      | sync_script_createuser_enabled | 0            | auth_ldap_syncplus |
+      | sync_authtype                  | manual       | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username | firstname | lastname | email              | auth   |
+      | user03   | User      | 03       | user03@example.org | manual |
+    When I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    Then the user "user03" should be <user03state>
+    And the user "admin" should not be deleted
+    And the user "admin" should not be suspended
+    And the user "guest" should not be deleted
+    And the user "guest" should not be suspended
+
+    # Example 1: Suspend query - user03 is suspended, the guest user and the admin user are skipped.
+    # Example 2: Full delete query - user03 is deleted, the guest user and the admin user are skipped.
+    Examples:
+      | removeuser | user03state |
+      | 1          | suspended   |
+      | 2          | deleted     |
+
+  # This is the same check as in the previous scenario, but for the grace period mode.
+  # In the first run, the grace period suspend query suspends user03 and skips the guest user and the admin user.
+  # The grace period delete query of the first run finds the guest user and the admin user as well and, as they
+  # have not been modified within the grace period, would try to delete them, so they must be skipped there, too.
+  # In the second run, user03 is deleted after the grace period has passed.
+  Scenario: The LDAP synchronization task does not suspend or delete the guest user and internal site admins when it is re-used for manual users (with grace period)
+    Given the following config values are set as admin:
+      | config                         | value  | plugin             |
+      | removeuser                     | 3      | auth_ldap_syncplus |
+      | removeuser_graceperiod         | 2      | auth_ldap_syncplus |
+      | sync_script_createuser_enabled | 0      | auth_ldap_syncplus |
+      | sync_authtype                  | manual | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username | firstname | lastname | email              | auth   |
+      | user03   | User      | 03       | user03@example.org | manual |
+    And I pretend the user "admin" was last modified "3" days ago
+    And I pretend the user "guest" was last modified "3" days ago
+    When I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    Then the user "user03" should be suspended
+    And the user "admin" should not be deleted
+    And the user "admin" should not be suspended
+    And the user "guest" should not be deleted
+    And the user "guest" should not be suspended
+    And I pretend the suspended user "user03" was suspended "3" days ago
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And the user "user03" should be deleted
+    And the user "admin" should not be deleted
+    And the user "admin" should not be suspended
+    And the user "guest" should not be deleted
+    And the user "guest" should not be suspended
+
+  # Countercheck for the previous scenarios: Only site admins who authenticate with the manual auth plugin are protected.
+  # A site admin with any other auth type who has disappeared from LDAP has to be deprovisioned just like any other user.
+  # The admin user is a manual user and is not covered by the sync here, so the admin user must remain untouched.
+  Scenario Outline: The LDAP synchronization task suspends or deletes site admins who do not authenticate with the manual auth plugin
+    Given the following config values are set as admin:
+      | config                         | value        | plugin             |
+      | removeuser                     | <removeuser> | auth_ldap_syncplus |
+      | sync_script_createuser_enabled | 0            | auth_ldap_syncplus |
+      | sync_authtype                  | <authtype>   | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username | firstname | lastname | email              | auth       |
+      | user03   | User      | 03       | user03@example.org | <authtype> |
+    And the user "user03" is a site admin
+    When I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    Then the user "user03" should be <user03state>
+    And the user "admin" should not be deleted
+    And the user "admin" should not be suspended
+
+    # Example 1 and 3: Suspend query - user03 is suspended although being a site admin.
+    # Example 2 and 4: Full delete query - user03 is deleted although being a site admin.
+    Examples:
+      | authtype      | removeuser | user03state |
+      | ldap_syncplus | 1          | suspended   |
+      | ldap_syncplus | 2          | deleted     |
+      | shibboleth    | 1          | suspended   |
+      | shibboleth    | 2          | deleted     |
+
+  # This is the same countercheck as in the previous scenario, but for the grace period mode.
+  # In the first run, the grace period suspend query suspends user03 although being a site admin.
+  # In the second run, user03 is deleted after the grace period has passed.
+  Scenario Outline: The LDAP synchronization task suspends and deletes site admins who do not authenticate with the manual auth plugin (with grace period)
+    Given the following config values are set as admin:
+      | config                         | value      | plugin             |
+      | removeuser                     | 3          | auth_ldap_syncplus |
+      | removeuser_graceperiod         | 2          | auth_ldap_syncplus |
+      | sync_script_createuser_enabled | 0          | auth_ldap_syncplus |
+      | sync_authtype                  | <authtype> | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username | firstname | lastname | email              | auth       |
+      | user03   | User      | 03       | user03@example.org | <authtype> |
+    And the user "user03" is a site admin
+    When I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    Then the user "user03" should be suspended
+    And the user "admin" should not be deleted
+    And the user "admin" should not be suspended
+    And I pretend the suspended user "user03" was suspended "3" days ago
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And the user "user03" should be deleted
+    And the user "admin" should not be deleted
+    And the user "admin" should not be suspended
+
+    Examples:
+      | authtype      |
+      | ldap_syncplus |
+      | shibboleth    |

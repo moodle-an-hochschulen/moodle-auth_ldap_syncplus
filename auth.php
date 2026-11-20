@@ -314,7 +314,18 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 if (!empty($remove_users)) {
                     mtrace(get_string('userentriestoremove', 'auth_ldap', count($remove_users)));
 
+                    $skippedusers = 0;
                     foreach ($remove_users as $user) {
+                        // Never delete the guest user and internal site admins.
+                        // delete_user() in lib/moodlelib.php would refuse to delete these accounts anyway, but we check
+                        // this on our own beforehand to be able to output a proper message.
+                        if ($this->is_protected_internal_user($user)) {
+                            mtrace("\t".get_string('protecteduserskippeddelete', 'auth_ldap_syncplus',
+                                    ['name' => $user->username, 'id' => $user->id]));
+                            $skippedusers++;
+                            continue;
+                        }
+
                         if (delete_user($user)) {
                             mtrace("\t".get_string('auth_dbdeleteuser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                         } else {
@@ -322,7 +333,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                         }
                     }
 
-                    mtrace(get_string('userentriestoremovedone', 'auth_ldap_syncplus', count($remove_users)));
+                    mtrace(get_string('userentriestoremovedone', 'auth_ldap_syncplus', count($remove_users) - $skippedusers));
                 } else {
                     mtrace(get_string('nouserentriestoremove', 'auth_ldap'));
                 }
@@ -347,7 +358,18 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 if (!empty($remove_users)) {
                     mtrace(get_string('userentriestoremove', 'auth_ldap', count($remove_users)));
 
+                    $skippedusers = 0;
                     foreach ($remove_users as $user) {
+                        // Never suspend the guest user and internal site admins.
+                        // This rule is adopted from delete_user() in lib/moodlelib.php which protects these accounts
+                        // from being deleted, but Moodle core does not have such a protection for suspending users.
+                        if ($this->is_protected_internal_user($user)) {
+                            mtrace("\t".get_string('protecteduserskippedsuspend', 'auth_ldap_syncplus',
+                                    ['name' => $user->username, 'id' => $user->id]));
+                            $skippedusers++;
+                            continue;
+                        }
+
                         $updateuser = new stdClass();
                         $updateuser->id = $user->id;
                         $updateuser->suspended = 1;
@@ -356,7 +378,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                         \core\session\manager::destroy_user_sessions($user->id);
                     }
 
-                    mtrace(get_string('userentriestoremovedone', 'auth_ldap_syncplus', count($remove_users)));
+                    mtrace(get_string('userentriestoremovedone', 'auth_ldap_syncplus', count($remove_users) - $skippedusers));
                 } else {
                     mtrace(get_string('nouserentriestoremove', 'auth_ldap'));
                 }
@@ -449,7 +471,18 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             if (!empty($remove_users)) {
                 mtrace(get_string('userentriestosuspend', 'auth_ldap_syncplus', count($remove_users)));
 
+                $skippedusers = 0;
                 foreach ($remove_users as $user) {
+                    // Never suspend the guest user and internal site admins.
+                    // This rule is adopted from delete_user() in lib/moodlelib.php which protects these accounts
+                    // from being deleted, but Moodle core does not have such a protection for suspending users.
+                    if ($this->is_protected_internal_user($user)) {
+                        mtrace("\t".get_string('protecteduserskippedsuspend', 'auth_ldap_syncplus',
+                                ['name' => $user->username, 'id' => $user->id]));
+                        $skippedusers++;
+                        continue;
+                    }
+
                     $updateuser = new stdClass();
                     $updateuser->id = $user->id;
                     $updateuser->suspended = 1;
@@ -459,7 +492,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     \core\session\manager::destroy_user_sessions($user->id);
                 }
 
-                mtrace(get_string('userentriestosuspenddone', 'auth_ldap_syncplus', count($remove_users)));
+                mtrace(get_string('userentriestosuspenddone', 'auth_ldap_syncplus', count($remove_users) - $skippedusers));
             } else {
                 mtrace(get_string('nouserentriestosuspend', 'auth_ldap_syncplus'));
             }
@@ -483,7 +516,18 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             if (!empty($remove_users)) {
                 mtrace(get_string('userentriestoremove', 'auth_ldap', count($remove_users)));
 
+                $skippedusers = 0;
                 foreach ($remove_users as $user) {
+                    // Never delete the guest user and internal site admins.
+                    // delete_user() in lib/moodlelib.php would refuse to delete these accounts anyway, but we check
+                    // this on our own beforehand to be able to output a proper message.
+                    if ($this->is_protected_internal_user($user)) {
+                        mtrace("\t".get_string('protecteduserskippeddelete', 'auth_ldap_syncplus',
+                                ['name' => $user->username, 'id' => $user->id]));
+                        $skippedusers++;
+                        continue;
+                    }
+
                     // Do only if user was suspended before grace period.
                     $graceperiod = max(intval($this->config->removeuser_graceperiod), 0);
                             // Fix problems if grace period setting was negative or no number.
@@ -499,7 +543,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     }
                 }
 
-                mtrace(get_string('userentriestoremovedone', 'auth_ldap_syncplus', count($remove_users)));
+                mtrace(get_string('userentriestoremovedone', 'auth_ldap_syncplus', count($remove_users) - $skippedusers));
             } else {
                 mtrace(get_string('nouserentriestoremove', 'auth_ldap'));
             }
@@ -851,6 +895,35 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             return false;
         }
         return $this->config->ignore_other_scopes == true;
+    }
+
+    /**
+     * Helper function to check if a user is a protected internal account which must never be suspended or deleted
+     * by the sync task.
+     *
+     * This applies the same rule as delete_user() in Moodle core does for deleting users: The guest user and site admins
+     * who authenticate with the manual auth plugin are protected. Site admins with any other auth type are not protected
+     * as they have to be deprovisioned when they disappear from LDAP.
+     * Moodle core does not apply this rule when suspending users, but this plugin does.
+     *
+     * This check is only relevant if the sync task is used for another auth type than LDAP (see the sync_authtype setting),
+     * especially if it is set to manual.
+     *
+     * @param stdClass $user The user record
+     * @return bool
+     */
+    private function is_protected_internal_user(stdClass $user): bool {
+        // The guest user is always protected.
+        if ($user->username === 'guest' || isguestuser($user)) {
+            return true;
+        }
+
+        // Internal site admins are protected.
+        if ($user->auth === 'manual' && is_siteadmin($user)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
