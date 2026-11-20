@@ -909,3 +909,93 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | authtype      |
       | ldap_syncplus |
       | shibboleth    |
+
+  # In LDAP, group01 contains the first user of each context (user01 / user11) and group02 contains the second user
+  # of each context (user02 / user12).
+  # In the first run, the manager role is mapped to group01, so the first user gets the role and the second user does not.
+  # In the second run, the manager role is mapped to group02, so the role is removed from the first user again and is
+  # assigned to the second user.
+  Scenario Outline: The LDAP roles synchronization task assigns and unassigns system roles for LDAP users and can be re-used for non-LDAP users
+    Given the following config values are set as admin:
+      | config               | value                                  | plugin             |
+      | contexts             | ou=<context>,dc=example,dc=org         | auth_ldap_syncplus |
+      | sync_authtype        | <authtype>                             | auth_ldap_syncplus |
+      | sync_scope           | <scope>                                | auth_ldap_syncplus |
+      | memberattribute      | member                                 | auth_ldap_syncplus |
+      | memberattribute_isdn | 1                                      | auth_ldap_syncplus |
+      | managercontext       | cn=group01,ou=groups,dc=example,dc=org | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username                 | firstname | lastname      | email                         | auth       |
+      | user<user1number><scope> | User      | <user1number> | user<user1number>@example.org | <authtype> |
+      | user<user2number><scope> | User      | <user2number> | user<user2number>@example.org | <authtype> |
+    When I log in as "admin"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_roles"
+    And I navigate to "Users > Permissions > Assign system roles" in site administration
+    Then I should see "User <user1number>" in the "Manager" "table_row"
+    And I should not see "User <user2number>" in the "Manager" "table_row"
+    And the following config values are set as admin:
+      | config         | value                                  | plugin             |
+      | managercontext | cn=group02,ou=groups,dc=example,dc=org | auth_ldap_syncplus |
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_roles"
+    And I reload the page
+    And I should not see "User <user1number>" in the "Manager" "table_row"
+    And I should see "User <user2number>" in the "Manager" "table_row"
+
+    Examples:
+      | authtype      | context    | scope        | user1number | user2number |
+      | ldap_syncplus | department |              | 01          | 02          |
+      | shibboleth    | department |              | 01          | 02          |
+      | shibboleth    | scoped     |              | 11          | 12          |
+      | shibboleth    | scoped     | @example.org | 11          | 12          |
+
+  # Countercheck for the previous scenario: The roles synchronization task only handles the users of the configured
+  # authentication type. The users exist in LDAP and are members of the mapped group, but as they are manual users,
+  # they must not get the role.
+  Scenario Outline: The LDAP roles synchronization task does not assign system roles to users of other authentication types
+    Given the following config values are set as admin:
+      | config               | value                                  | plugin             |
+      | sync_authtype        | <authtype>                             | auth_ldap_syncplus |
+      | memberattribute      | member                                 | auth_ldap_syncplus |
+      | memberattribute_isdn | 1                                      | auth_ldap_syncplus |
+      | managercontext       | cn=group01,ou=groups,dc=example,dc=org | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username | firstname | lastname | email              | auth   |
+      | user01   | User      | 01       | user01@example.org | manual |
+    When I log in as "admin"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_roles"
+    And I navigate to "Users > Permissions > Assign system roles" in site administration
+    Then I should not see "User 01" in the "Manager" "table_row"
+
+    Examples:
+      | authtype      |
+      | ldap_syncplus |
+      | shibboleth    |
+
+  # user11@example.org is inside the configured scope, user11@example.net is outside of it.
+  # If the scope is removed from both usernames, both users would match user11 in LDAP who is a member of the mapped group.
+  # As the scope is only removed from usernames which contain it, user11@example.net is not found in LDAP and does not
+  # get the role, regardless of the ignore_other_scopes setting.
+  Scenario Outline: The LDAP roles synchronization task does not assign system roles to non-LDAP users outside sync_scope
+    Given the following config values are set as admin:
+      | config               | value                                  | plugin             |
+      | contexts             | ou=scoped,dc=example,dc=org            | auth_ldap_syncplus |
+      | sync_authtype        | shibboleth                             | auth_ldap_syncplus |
+      | sync_scope           | @example.org                           | auth_ldap_syncplus |
+      | ignore_other_scopes  | <ignore_other_scopes>                  | auth_ldap_syncplus |
+      | memberattribute      | member                                 | auth_ldap_syncplus |
+      | memberattribute_isdn | 1                                      | auth_ldap_syncplus |
+      | managercontext       | cn=group01,ou=groups,dc=example,dc=org | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username           | firstname | lastname | email              | auth       |
+      | user11@example.org | User      | 11       | user11@example.org | shibboleth |
+      | user11@example.net | User      | 11net    | user11@example.net | shibboleth |
+    When I log in as "admin"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_roles"
+    And I navigate to "Users > Permissions > Assign system roles" in site administration
+    Then I should see "User 11" in the "Manager" "table_row"
+    And I should not see "User 11net" in the "Manager" "table_row"
+
+    Examples:
+      | ignore_other_scopes |
+      | 0                   |
+      | 1                   |

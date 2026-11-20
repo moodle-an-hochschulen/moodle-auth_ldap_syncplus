@@ -845,6 +845,55 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
     }
 
     /**
+     * Synchronizes the user's system roles from LDAP.
+     *
+     * This function overrides the function from auth_ldap to remove the scope from the username if configured.
+     * This must be done here as the parent function passes the username to is_role() which is a private function
+     * in auth_ldap, which looks up the user in LDAP and which thus can't be overridden by this plugin.
+     *
+     * @param stdClass $user The user to sync (without system magic quotes)
+     * @return void
+     */
+    public function sync_roles($user) {
+        // Work on a copy of the user object to avoid changing the username in the calling code.
+        $user = clone $user;
+
+        // Remove the scope from the username if configured.
+        $user->username = $this->strip_scope_from_username($user->username);
+
+        // Call the parent function.
+        parent::sync_roles($user);
+    }
+
+    /**
+     * Returns the users whose system roles have to be synchronized by the roles sync task.
+     *
+     * In contrast to the roles sync task in auth_ldap, this function respects the sync_authtype setting of this plugin
+     * and, if configured, ignores the users outside the configured username scope. It does not return deleted users as
+     * they can't have any role assignments anymore.
+     *
+     * The caller is responsible for closing the returned recordset.
+     *
+     * @return moodle_recordset
+     */
+    public function get_users_for_roles_sync(): moodle_recordset {
+        global $CFG, $DB;
+
+        $sql = 'SELECT u.*
+                  FROM {user} u
+                 WHERE u.deleted = 0 AND u.auth = :auth AND u.mnethostid = :mnethostid' .
+                 $this->get_remove_users_scope_filter_sql_snippet('u.username');
+
+        return $DB->get_recordset_sql($sql, array_merge(
+            [
+                'auth' => $this->config->sync_authtype,
+                'mnethostid' => $CFG->mnet_localhost_id,
+            ],
+            $this->get_remove_users_scope_filter_sql_params()
+        ));
+    }
+
+    /**
      * Helper function to get the SQL snippet for the sync scope JOIN ON clause, if configured.
      *
      * @param string $userfield The userfield name
