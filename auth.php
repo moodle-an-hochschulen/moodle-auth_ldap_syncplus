@@ -604,7 +604,21 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     $transaction = $DB->start_delegated_transaction();
 
                     // Get the user.
-                    $user = $this->get_userinfo_asobj($user->username);
+                    $ldapusername = $user->username;
+                    $user = $this->get_userinfo_asobj($ldapusername);
+
+                    // If the user could not be read from LDAP, skip the user and continue with the next one.
+                    // This happens if the user was found by the LDAP search which filled the temporary table, but is not
+                    // found by the separate lookup here anymore, for example if the user was removed from LDAP in the meantime
+                    // or if the custom sync filter of this plugin returns users who do not match the configured object class.
+                    // Without this check, the whole sync would be aborted with a PHP error and none of the remaining users
+                    // would be added. This is a bug in auth_ldap core, see MDL-90697 and MDL-63611.
+                    if ($user === false) {
+                        mtrace("\t".get_string('userentrynotfound', 'auth_ldap_syncplus', $ldapusername));
+                        $errors++;
+                        $transaction->allow_commit();
+                        continue;
+                    }
 
                     // Prep a few params.
                     $user->modified   = time();

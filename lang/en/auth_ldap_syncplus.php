@@ -58,4 +58,5 @@ $string['userentriestosuspend'] = 'User entries to be suspended: {$a}';
 $string['userentriestosuspenddone'] = 'Transaction complete – User entries suspended: {$a}';
 $string['userentriestoupdate'] = 'User entries to be checked for updates: {$a}';
 $string['userentriestoupdatedone'] = 'Transaction complete – User entries updated: {$a->updated}, user entries skipped: {$a->skipped}';
+$string['userentrynotfound'] = 'User entry not found in LDAP, skipped: {$a}';
 $string['waitinginremovalqueue'] = 'Waiting in removal queue for {$a->days} day grace period: {$a->name} ID {$a->id}';

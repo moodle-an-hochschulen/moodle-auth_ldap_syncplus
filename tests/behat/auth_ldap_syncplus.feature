@@ -1069,3 +1069,25 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
       | user@example.org11             | 1                   |
       | user@example.org11@example.org | 0                   |
       | user@example.org11@example.org | 1                   |
+
+  # The custom sync filter returns <user1> and <user2> from LDAP, so both are considered as users to be added.
+  # But when a user is added, the user is looked up in LDAP again and this lookup respects the configured object class
+  # which is (mis)used here as a filter which only matches <user2>. So <user1> can't be read from LDAP.
+  # <user1> must be skipped then and the synchronization task must continue and add <user2> instead of being aborted.
+  Scenario Outline: The LDAP synchronization task skips users who can't be read from LDAP and continues to add the remaining users
+    Given the following config values are set as admin:
+      | config        | value                          | plugin             |
+      | contexts      | ou=<context>,dc=example,dc=org | auth_ldap_syncplus |
+      | sync_authtype | shibboleth                     | auth_ldap_syncplus |
+      | sync_filter   | (uid=*)                        | auth_ldap_syncplus |
+      | objectclass   | (cn=User <user2number>)        | auth_ldap_syncplus |
+    When I log in as "admin"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I navigate to "Users > Accounts > Browse list of users" in site administration
+    Then I should not see "User <user1number>" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "User <user2number>" in the "[data-region='report-user-list-wrapper']" "css_element"
+
+    Examples:
+      | context    | user1number | user2number |
+      | department | 01          | 02          |
+      | scoped     | 11          | 12          |
