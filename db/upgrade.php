@@ -76,5 +76,47 @@ function xmldb_auth_ldap_syncplus_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026100501, 'auth', 'ldap_syncplus');
     }
 
+    if ($oldversion < 2026100503) {
+        // The start of the grace period of a suspended user is now stored in the auth_ldap_syncplus_suspendedat user
+        // preference instead of being derived from the timemodified column of the user.
+        // If the grace period mode (removeuser = 3) is in use, give all users who are currently suspended a fresh grace
+        // period which starts now. We do not adopt the timemodified value as it does not tell us reliably when and by whom
+        // the user was suspended.
+        if (get_config('auth_ldap_syncplus', 'removeuser') == 3) {
+            // Get the auth type of the users who are synchronized, falling back to the default.
+            $authtype = get_config('auth_ldap_syncplus', 'sync_authtype');
+            if (empty($authtype)) {
+                $authtype = 'ldap_syncplus';
+            }
+
+            // Get all suspended users with this auth type who do not have a grace period start time yet.
+            // The setting value and the preference name are hardcoded on purpose as an upgrade step must not rely on constants.
+            $sql = "SELECT u.id
+                      FROM {user} u
+                 LEFT JOIN {user_preferences} up ON (up.userid = u.id AND up.name = :name)
+                     WHERE u.auth = :auth
+                           AND u.suspended = 1
+                           AND u.deleted = 0
+                           AND up.id IS NULL";
+            $userids = $DB->get_fieldset_sql($sql, ['name' => 'auth_ldap_syncplus_suspendedat', 'auth' => $authtype]);
+
+            // Store the current time as grace period start time for these users, in chunks to limit the memory usage.
+            $now = time();
+            foreach (array_chunk($userids, 1000) as $chunk) {
+                // Build the user preference records of this chunk.
+                $records = [];
+                foreach ($chunk as $userid) {
+                    $records[] = (object) ['userid' => $userid, 'name' => 'auth_ldap_syncplus_suspendedat', 'value' => $now];
+                }
+
+                // Insert the records directly instead of calling set_user_preference() for each single user.
+                $DB->insert_records('user_preferences', $records);
+            }
+        }
+
+        // Remember upgrade savepoint.
+        upgrade_plugin_savepoint(true, 2026100503, 'auth', 'ldap_syncplus');
+    }
+
     return true;
 }

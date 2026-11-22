@@ -25,6 +25,7 @@
 // NOTE: no MOODLE_INTERNAL test here, this file may be required by behat before including /config.php.
 
 require_once(__DIR__ . '/../../../../lib/behat/behat_base.php');
+require_once(__DIR__ . '/../../locallib.php');
 
 /**
  * Step definitions.
@@ -46,22 +47,39 @@ class behat_auth_ldap_syncplus extends behat_base {
     public function i_pretend_that_the_suspended_user_was_already_suspended_days_ago($username, $days) {
         global $DB;
 
-        // Get the user record of the given user.
-        $user = $DB->get_record('user', ['username' => $username]);
+        // Get the ID of the given user.
+        $userid = $DB->get_field('user', 'id', ['username' => $username], MUST_EXIST);
 
         // Update the suspended field in the user record.
-        $user->suspended = 1;
+        $DB->set_field('user', 'suspended', 1, ['id' => $userid]);
 
-        // Update the timemodified field in the user record.
-        $user->timemodified = time() - $days * DAYSECS;
+        // Set the grace period start time of the user.
+        set_user_preference(AUTH_LDAP_SYNCPLUS_SUSPENDEDAT_PREFERENCE, time() - $days * DAYSECS, $userid);
+    }
 
-        // Update the user record in the database.
-        $DB->update_record('user', $user);
+    /**
+     * The step makes sure that a given user appears to have a grace period which has started some days ago,
+     * without changing the suspended status.
+     * This is needed to check that a user is not deleted even though the grace period of this plugin has passed.
+     *
+     * @When /^I pretend the grace period of user "(?P<username_string>(?:[^"]|\\")*)" started "(?P<days_number>\d+)" days ago$/
+     * @param string $username
+     * @param int $days
+     * @return void
+     */
+    public function i_pretend_that_the_grace_period_of_the_user_has_started_days_ago($username, $days) {
+        global $DB;
+
+        // Get the ID of the given user.
+        $userid = $DB->get_field('user', 'id', ['username' => $username], MUST_EXIST);
+
+        // Set the grace period start time of the user.
+        set_user_preference(AUTH_LDAP_SYNCPLUS_SUSPENDEDAT_PREFERENCE, time() - $days * DAYSECS, $userid);
     }
 
     /**
      * The step makes sure that a given user appears to be modified some days ago, without changing the suspended status.
-     * This is needed to make sure that a user is outside the grace period of this plugin.
+     * This is needed to check that the grace period of this plugin does not depend on the last modification of a user.
      *
      * @When /^I pretend the user "(?P<username_string>(?:[^"]|\\")*)" was last modified "(?P<days_number>\d+)" days ago$/
      * @param string $username
@@ -122,6 +140,36 @@ class behat_auth_ldap_syncplus extends behat_base {
         if ((int) $user->suspended !== $expected) {
             throw new \Behat\Mink\Exception\ExpectationException(
                 'The user "' . $username . '" is ' . (($expected === 1) ? 'not ' : '') . 'suspended',
+                $this->getSession()
+            );
+        }
+    }
+
+    /**
+     * The step checks in the database if a grace period start time is stored for a given user or not.
+     *
+     * @Then /^the user "(?P<username_string>(?:[^"]|\\")*)" should (?P<not_string>not |)have a grace period start time$/
+     * @param string $username
+     * @param string $not
+     * @return void
+     */
+    public function the_user_should_have_a_grace_period_start_time($username, $not) {
+        global $DB;
+
+        // Get the ID of the given (non-deleted) user.
+        $userid = $DB->get_field('user', 'id', ['username' => $username, 'deleted' => 0], MUST_EXIST);
+
+        // Check directly in the database if the user preference exists.
+        $exists = $DB->record_exists(
+            'user_preferences',
+            ['userid' => $userid, 'name' => AUTH_LDAP_SYNCPLUS_SUSPENDEDAT_PREFERENCE]
+        );
+
+        // Check the expectation.
+        $expected = ($not === '');
+        if ($exists !== $expected) {
+            throw new \Behat\Mink\Exception\ExpectationException(
+                'The user "' . $username . '" does ' . (($expected) ? 'not ' : '') . 'have a grace period start time',
                 $this->getSession()
             );
         }

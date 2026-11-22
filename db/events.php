@@ -29,4 +29,8 @@ $observers = [
         'eventname' => '\core\event\user_created',
         'callback' => '\auth_ldap_syncplus\eventobservers::user_created',
     ],
+    [
+        'eventname' => '\core\event\user_updated',
+        'callback' => '\auth_ldap_syncplus\eventobservers::user_updated',
+    ],
 ];

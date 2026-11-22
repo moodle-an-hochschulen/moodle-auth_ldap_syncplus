@@ -61,7 +61,7 @@ The setting "Removed ext user" has an additional option called "Suspend internal
 
 ### 2. Fully deleting grace period
 
-With the setting "Fully deleting grace period" (Default: 10 days), you can control the length of the grace period until a user account is fully deleted after it has disappeared from LDAP.
+With the setting "Fully deleting grace period" (Default: 10 days), you can control the length of the grace period until a user account is fully deleted after it has disappeared from LDAP. Please see the section "How the grace period works" below for details.
 
 ### 3. Add new users
 
@@ -138,6 +138,24 @@ How this plugin works
 ---------------------
 
 This plugin is implemented with minimal code duplication in mind. It inherits / requires as much code as possible from auth_ldap and only implements the extended functionalities.
+
+
+How the grace period works
+--------------------------
+
+If "Removed ext user" is set to "Suspend internal and fully delete internal after grace period", the grace period of a user starts when the synchronization task suspends the user. The plugin remembers this start time for each user.
+
+If the synchronization task finds a user who has disappeared from LDAP and who is already suspended without having been suspended by the grace period mode of the task (for example because an admin has suspended the user manually or because "Removed ext user" was set to "Suspend internal" before), the grace period of this user starts with this run of the synchronization task.
+
+Modifying a suspended user does not restart the grace period. If a suspended user is unsuspended, either by the synchronization task because the user has reappeared in LDAP or manually by an admin, the grace period is discarded.
+
+Please note that the grace period of a suspended user is only kept as long as the synchronization task handles the user continuously with the grace period mode. With every run, the synchronization task discards the grace periods of all users who are not handled this way anymore. This happens if you change one of these settings:
+
+* "Removed ext user" is changed to another option than "Suspend internal and fully delete internal after grace period". The grace periods of all users are discarded.
+* "Moodle authentication type when synchronizing users" is changed. The grace periods of the users with the previous authentication type are discarded.
+* "Username scope when synchronizing users" or "Ignore users outside the configured username scope" is changed. The grace periods of the users who are outside of the scope now are discarded.
+
+The affected users are not deleted or revived by the synchronization task in this case, they simply remain suspended. If you change the setting back later, the users who are still suspended and still missing in LDAP are not deleted right away, but get a fresh grace period which starts with the next run of the synchronization task.
 
 
 Theme support

@@ -288,6 +288,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             mtrace(get_string('gotcountrecordsfromldap', 'auth_ldap', $count));
         }
 
+        // Forget the grace period start times which are not valid anymore before any user is suspended, revived or deleted.
+        $this->cleanup_grace_period_start_times();
 
         // Non Grace Period Synchronisation.
         if ($this->config->removeuser != AUTH_REMOVEUSER_DELETEWITHGRACEPERIOD) {
@@ -407,6 +409,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                         $updateuser->auth = $this->config->sync_authtype;
                         $updateuser->suspended = 0;
                         \core\user::update_user($updateuser, false);
+                        // Forget a grace period start time which might be left over from the grace period mode.
+                        unset_user_preference(AUTH_LDAP_SYNCPLUS_SUSPENDEDAT_PREFERENCE, $user->id);
                         mtrace("\t".get_string('auth_dbreviveduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                     }
 
@@ -443,6 +447,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     $updateuser->auth = $this->config->sync_authtype;
                     $updateuser->suspended = 0;
                     \core\user::update_user($updateuser, false);
+                    // Forget the grace period start time.
+                    unset_user_preference(AUTH_LDAP_SYNCPLUS_SUSPENDEDAT_PREFERENCE, $user->id);
                     mtrace("\t".get_string('auth_dbreviveduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                 }
 
@@ -486,8 +492,9 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     $updateuser = new stdClass();
                     $updateuser->id = $user->id;
                     $updateuser->suspended = 1;
-                    $updateuser->timemodified = time(); // Remember suspend time, abuse timemodified column for this.
                     \core\user::update_user($updateuser, false);
+                    // Remember the suspend time as start of the grace period.
+                    set_user_preference(AUTH_LDAP_SYNCPLUS_SUSPENDEDAT_PREFERENCE, time(), $user->id);
                     mtrace("\t".get_string('auth_dbsuspenduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                     \core\session\manager::destroy_user_sessions($user->id);
                 }
@@ -499,16 +506,18 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             unset($remove_users); // Free mem!
 
             // User complete removal.
-            $sql = "SELECT u.*
+            // The grace period start time of each user is fetched from the user preferences together with the user.
+            $sql = "SELECT u.*, up.value AS syncplussuspendedat
                       FROM {user} u
                  LEFT JOIN {tmp_extuser} e ON (u.username = (".$this->get_sync_scope_sql_joinon_snippet('e.username').")
                         AND u.mnethostid = e.mnethostid)
+                 LEFT JOIN {user_preferences} up ON (up.userid = u.id AND up.name = :suspendedatpreference)
                      WHERE u.auth = :auth
                            AND u.deleted = 0
                            AND e.username IS NULL".
                            $this->get_remove_users_scope_filter_sql_snippet('u.username');
             $remove_users = $DB->get_records_sql($sql, array_merge(
-                ['auth' => $this->config->sync_authtype],
+                ['auth' => $this->config->sync_authtype, 'suspendedatpreference' => AUTH_LDAP_SYNCPLUS_SUSPENDEDAT_PREFERENCE],
                 $this->get_sync_scope_sql_joinon_params(),
                 $this->get_remove_users_scope_filter_sql_params()
             ));
@@ -528,10 +537,25 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                         continue;
                     }
 
-                    // Do only if user was suspended before grace period.
+                    // Pick the grace period start time and remove it from the user object again
+                    // as it is not a field of the user record.
+                    $suspendedat = $user->syncplussuspendedat;
+                    unset($user->syncplussuspendedat);
+
                     $graceperiod = max(intval($this->config->removeuser_graceperiod), 0);
                             // Fix problems if grace period setting was negative or no number.
-                    if (time() - $user->timemodified >= $graceperiod * 24 * 3600) {
+
+                    // If the user does not have a (valid) grace period start time, the user was not suspended by the
+                    // grace period mode of this task, but for example manually by an admin or by this task while the
+                    // "Removed ext user" setting was set to another option.
+                    // In this case, we do not know for how long the user is already missing in LDAP.
+                    // Thus, we do not delete the user now, but start the grace period with this run.
+                    if ($suspendedat === null || !is_numeric($suspendedat)) {
+                        set_user_preference(AUTH_LDAP_SYNCPLUS_SUSPENDEDAT_PREFERENCE, time(), $user->id);
+                        mtrace("\t".get_string('waitinginremovalqueue', 'auth_ldap_syncplus', array('days'=>$graceperiod, 'name'=>$user->username, 'id'=>$user->id)));
+
+                        // Do only if user was suspended before grace period.
+                    } else if (time() - (int)$suspendedat >= $graceperiod * DAYSECS) {
                         if (delete_user($user)) {
                             mtrace("\t".get_string('auth_dbdeleteuser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                         } else {
@@ -1006,6 +1030,46 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         }
 
         return ' AND ' . $DB->sql_like($userfield, ':scope', false, false);
+    }
+
+    /**
+     * Helper function to forget the grace period start times which are not valid anymore.
+     *
+     * A grace period start time is only valid as long as the synchronization task handles the user continuously with the
+     * grace period mode. If an admin changes the "Removed ext user", "Moodle authentication type when synchronizing users",
+     * "Username scope when synchronizing users" or "Ignore users outside the configured username scope" setting, start times
+     * might remain on users who are not handled (this way) anymore. If the setting is changed back later, such an outdated
+     * start time would be picked up again and the user could be deleted without any grace period.
+     *
+     * This is done with every run of the synchronization task instead of in a callback of the settings, as it then works
+     * regardless of the way how a setting was changed (admin GUI, CLI or config.php).
+     *
+     * @return void
+     */
+    private function cleanup_grace_period_start_times(): void {
+        global $DB;
+
+        // If the grace period mode is not in use, no start time is valid.
+        if ($this->config->removeuser != AUTH_REMOVEUSER_DELETEWITHGRACEPERIOD) {
+            $DB->delete_records('user_preferences', ['name' => AUTH_LDAP_SYNCPLUS_SUSPENDEDAT_PREFERENCE]);
+            return;
+        }
+
+        // Otherwise, a start time is only valid for a suspended user who has the auth type which is synchronized
+        // and who is within the username scope (if users outside of the scope are ignored).
+        $select = "name = :suspendedatpreference
+                   AND userid NOT IN (
+                       SELECT u.id
+                         FROM {user} u
+                        WHERE u.auth = :auth
+                              AND u.suspended = 1
+                              AND u.deleted = 0".
+                              $this->get_remove_users_scope_filter_sql_snippet('u.username')."
+                   )";
+        $DB->delete_records_select('user_preferences', $select, array_merge(
+            ['suspendedatpreference' => AUTH_LDAP_SYNCPLUS_SUSPENDEDAT_PREFERENCE, 'auth' => $this->config->sync_authtype],
+            $this->get_remove_users_scope_filter_sql_params()
+        ));
     }
 
     /**
