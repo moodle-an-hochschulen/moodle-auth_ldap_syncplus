@@ -69,16 +69,19 @@ class sync_roles extends \core\task\scheduled_task {
      * @return boolean
      */
     public function execute() {
-        global $DB;
-
         $authentication = \core\di::get(\core\authentication::class);
 
         if ($authentication->is_enabled('ldap_syncplus') || auth_ldap_syncplus_sync_with_other_auth()) {
+            /** @var \auth_plugin_ldap_syncplus $auth */
             $auth = $authentication->get_plugin('ldap_syncplus');
-            $users = $DB->get_records('user', ['auth' => 'ldap_syncplus']);
+
+            // Get the users whose roles have to be synchronized.
+            // In contrast to auth_ldap, this respects the sync_authtype and sync_scope settings of this plugin.
+            $users = $auth->get_users_for_roles_sync();
             foreach ($users as $user) {
                 $auth->sync_roles($user);
             }
+            $users->close();
         }
     }
 }

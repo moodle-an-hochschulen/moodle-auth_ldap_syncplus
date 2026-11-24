@@ -288,6 +288,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             mtrace(get_string('gotcountrecordsfromldap', 'auth_ldap', $count));
         }
 
+        // Forget the grace period start times which are not valid anymore before any user is suspended, revived or deleted.
+        $this->cleanup_grace_period_start_times();
 
         // Non Grace Period Synchronisation.
         if ($this->config->removeuser != AUTH_REMOVEUSER_DELETEWITHGRACEPERIOD) {
@@ -314,7 +316,18 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 if (!empty($remove_users)) {
                     mtrace(get_string('userentriestoremove', 'auth_ldap', count($remove_users)));
 
+                    $skippedusers = 0;
                     foreach ($remove_users as $user) {
+                        // Never delete the guest user and internal site admins.
+                        // delete_user() in lib/moodlelib.php would refuse to delete these accounts anyway, but we check
+                        // this on our own beforehand to be able to output a proper message.
+                        if ($this->is_protected_internal_user($user)) {
+                            mtrace("\t".get_string('protecteduserskippeddelete', 'auth_ldap_syncplus',
+                                    ['name' => $user->username, 'id' => $user->id]));
+                            $skippedusers++;
+                            continue;
+                        }
+
                         if (delete_user($user)) {
                             mtrace("\t".get_string('auth_dbdeleteuser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                         } else {
@@ -322,7 +335,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                         }
                     }
 
-                    mtrace(get_string('userentriestoremovedone', 'auth_ldap_syncplus', count($remove_users)));
+                    mtrace(get_string('userentriestoremovedone', 'auth_ldap_syncplus', count($remove_users) - $skippedusers));
                 } else {
                     mtrace(get_string('nouserentriestoremove', 'auth_ldap'));
                 }
@@ -347,7 +360,18 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 if (!empty($remove_users)) {
                     mtrace(get_string('userentriestoremove', 'auth_ldap', count($remove_users)));
 
+                    $skippedusers = 0;
                     foreach ($remove_users as $user) {
+                        // Never suspend the guest user and internal site admins.
+                        // This rule is adopted from delete_user() in lib/moodlelib.php which protects these accounts
+                        // from being deleted, but Moodle core does not have such a protection for suspending users.
+                        if ($this->is_protected_internal_user($user)) {
+                            mtrace("\t".get_string('protecteduserskippedsuspend', 'auth_ldap_syncplus',
+                                    ['name' => $user->username, 'id' => $user->id]));
+                            $skippedusers++;
+                            continue;
+                        }
+
                         $updateuser = new stdClass();
                         $updateuser->id = $user->id;
                         $updateuser->suspended = 1;
@@ -356,7 +380,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                         \core\session\manager::destroy_user_sessions($user->id);
                     }
 
-                    mtrace(get_string('userentriestoremovedone', 'auth_ldap_syncplus', count($remove_users)));
+                    mtrace(get_string('userentriestoremovedone', 'auth_ldap_syncplus', count($remove_users) - $skippedusers));
                 } else {
                     mtrace(get_string('nouserentriestoremove', 'auth_ldap'));
                 }
@@ -385,6 +409,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                         $updateuser->auth = $this->config->sync_authtype;
                         $updateuser->suspended = 0;
                         \core\user::update_user($updateuser, false);
+                        // Forget a grace period start time which might be left over from the grace period mode.
+                        unset_user_preference(AUTH_LDAP_SYNCPLUS_SUSPENDEDAT_PREFERENCE, $user->id);
                         mtrace("\t".get_string('auth_dbreviveduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                     }
 
@@ -421,6 +447,8 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     $updateuser->auth = $this->config->sync_authtype;
                     $updateuser->suspended = 0;
                     \core\user::update_user($updateuser, false);
+                    // Forget the grace period start time.
+                    unset_user_preference(AUTH_LDAP_SYNCPLUS_SUSPENDEDAT_PREFERENCE, $user->id);
                     mtrace("\t".get_string('auth_dbreviveduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                 }
 
@@ -449,33 +477,47 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             if (!empty($remove_users)) {
                 mtrace(get_string('userentriestosuspend', 'auth_ldap_syncplus', count($remove_users)));
 
+                $skippedusers = 0;
                 foreach ($remove_users as $user) {
+                    // Never suspend the guest user and internal site admins.
+                    // This rule is adopted from delete_user() in lib/moodlelib.php which protects these accounts
+                    // from being deleted, but Moodle core does not have such a protection for suspending users.
+                    if ($this->is_protected_internal_user($user)) {
+                        mtrace("\t".get_string('protecteduserskippedsuspend', 'auth_ldap_syncplus',
+                                ['name' => $user->username, 'id' => $user->id]));
+                        $skippedusers++;
+                        continue;
+                    }
+
                     $updateuser = new stdClass();
                     $updateuser->id = $user->id;
                     $updateuser->suspended = 1;
-                    $updateuser->timemodified = time(); // Remember suspend time, abuse timemodified column for this.
                     \core\user::update_user($updateuser, false);
+                    // Remember the suspend time as start of the grace period.
+                    set_user_preference(AUTH_LDAP_SYNCPLUS_SUSPENDEDAT_PREFERENCE, time(), $user->id);
                     mtrace("\t".get_string('auth_dbsuspenduser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                     \core\session\manager::destroy_user_sessions($user->id);
                 }
 
-                mtrace(get_string('userentriestosuspenddone', 'auth_ldap_syncplus', count($remove_users)));
+                mtrace(get_string('userentriestosuspenddone', 'auth_ldap_syncplus', count($remove_users) - $skippedusers));
             } else {
                 mtrace(get_string('nouserentriestosuspend', 'auth_ldap_syncplus'));
             }
             unset($remove_users); // Free mem!
 
             // User complete removal.
-            $sql = "SELECT u.*
+            // The grace period start time of each user is fetched from the user preferences together with the user.
+            $sql = "SELECT u.*, up.value AS syncplussuspendedat
                       FROM {user} u
                  LEFT JOIN {tmp_extuser} e ON (u.username = (".$this->get_sync_scope_sql_joinon_snippet('e.username').")
                         AND u.mnethostid = e.mnethostid)
+                 LEFT JOIN {user_preferences} up ON (up.userid = u.id AND up.name = :suspendedatpreference)
                      WHERE u.auth = :auth
                            AND u.deleted = 0
                            AND e.username IS NULL".
                            $this->get_remove_users_scope_filter_sql_snippet('u.username');
             $remove_users = $DB->get_records_sql($sql, array_merge(
-                ['auth' => $this->config->sync_authtype],
+                ['auth' => $this->config->sync_authtype, 'suspendedatpreference' => AUTH_LDAP_SYNCPLUS_SUSPENDEDAT_PREFERENCE],
                 $this->get_sync_scope_sql_joinon_params(),
                 $this->get_remove_users_scope_filter_sql_params()
             ));
@@ -483,11 +525,37 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             if (!empty($remove_users)) {
                 mtrace(get_string('userentriestoremove', 'auth_ldap', count($remove_users)));
 
+                $skippedusers = 0;
                 foreach ($remove_users as $user) {
-                    // Do only if user was suspended before grace period.
+                    // Never delete the guest user and internal site admins.
+                    // delete_user() in lib/moodlelib.php would refuse to delete these accounts anyway, but we check
+                    // this on our own beforehand to be able to output a proper message.
+                    if ($this->is_protected_internal_user($user)) {
+                        mtrace("\t".get_string('protecteduserskippeddelete', 'auth_ldap_syncplus',
+                                ['name' => $user->username, 'id' => $user->id]));
+                        $skippedusers++;
+                        continue;
+                    }
+
+                    // Pick the grace period start time and remove it from the user object again
+                    // as it is not a field of the user record.
+                    $suspendedat = $user->syncplussuspendedat;
+                    unset($user->syncplussuspendedat);
+
                     $graceperiod = max(intval($this->config->removeuser_graceperiod), 0);
                             // Fix problems if grace period setting was negative or no number.
-                    if (time() - $user->timemodified >= $graceperiod * 24 * 3600) {
+
+                    // If the user does not have a (valid) grace period start time, the user was not suspended by the
+                    // grace period mode of this task, but for example manually by an admin or by this task while the
+                    // "Removed ext user" setting was set to another option.
+                    // In this case, we do not know for how long the user is already missing in LDAP.
+                    // Thus, we do not delete the user now, but start the grace period with this run.
+                    if ($suspendedat === null || !is_numeric($suspendedat)) {
+                        set_user_preference(AUTH_LDAP_SYNCPLUS_SUSPENDEDAT_PREFERENCE, time(), $user->id);
+                        mtrace("\t".get_string('waitinginremovalqueue', 'auth_ldap_syncplus', array('days'=>$graceperiod, 'name'=>$user->username, 'id'=>$user->id)));
+
+                        // Do only if user was suspended before grace period.
+                    } else if (time() - (int)$suspendedat >= $graceperiod * DAYSECS) {
                         if (delete_user($user)) {
                             mtrace("\t".get_string('auth_dbdeleteuser', 'auth_db', array('name'=>$user->username, 'id'=>$user->id)));
                         } else {
@@ -499,7 +567,7 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     }
                 }
 
-                mtrace(get_string('userentriestoremovedone', 'auth_ldap_syncplus', count($remove_users)));
+                mtrace(get_string('userentriestoremovedone', 'auth_ldap_syncplus', count($remove_users) - $skippedusers));
             } else {
                 mtrace(get_string('nouserentriestoremove', 'auth_ldap'));
             }
@@ -519,6 +587,12 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                 ],
                 $this->get_remove_users_scope_filter_sql_params()
             ));
+            // Drop the username keys of the users array. Otherwise, if the users are not updated in chunks, the array is
+            // stored as JSON object in the ad-hoc task's custom data and the ad-hoc task fails as it gets a stdClass
+            // instead of an array. This is a bug in auth_ldap core and is fixed here the same way as in MDL-89516 which is still
+            // in the works.
+            $users = array_values($users);
+
             if (!empty($users)) {
                 // Update users in chunks as specified in sync_updateuserchunk.
                 if (!empty($this->config->sync_updateuserchunk)) {
@@ -554,7 +628,21 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
                     $transaction = $DB->start_delegated_transaction();
 
                     // Get the user.
-                    $user = $this->get_userinfo_asobj($user->username);
+                    $ldapusername = $user->username;
+                    $user = $this->get_userinfo_asobj($ldapusername);
+
+                    // If the user could not be read from LDAP, skip the user and continue with the next one.
+                    // This happens if the user was found by the LDAP search which filled the temporary table, but is not
+                    // found by the separate lookup here anymore, for example if the user was removed from LDAP in the meantime
+                    // or if the custom sync filter of this plugin returns users who do not match the configured object class.
+                    // Without this check, the whole sync would be aborted with a PHP error and none of the remaining users
+                    // would be added. This is a bug in auth_ldap core, see MDL-90697 and MDL-63611.
+                    if ($user === false) {
+                        mtrace("\t".get_string('userentrynotfound', 'auth_ldap_syncplus', $ldapusername));
+                        $errors++;
+                        $transaction->allow_commit();
+                        continue;
+                    }
 
                     // Prep a few params.
                     $user->modified   = time();
@@ -706,89 +794,141 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
             return;
         }
 
-        // Get auth plugin.
-        $authplugin = \core\di::get(\core\authentication::class)->get_plugin('ldap_syncplus');
-
         // If there is no email field mapping configured, we don't know where we can find the email adress in LDAP,
         // call parent hook and return.
-        if (empty($authplugin->config->field_map_email)) {
+        if (empty($this->config->field_map_email)) {
             parent::loginpage_hook(); // Call parent function to retain its functionality.
             return;
         }
 
         // Prepare LDAP search.
-        $contexts = explode(';', $authplugin->config->contexts);
-        $filter = '(&('.$authplugin->config->field_map_email.'='.ldap_filter_addslashes($email).')'.
-                $authplugin->config->objectclass.')';
+        $contexts = explode(';', $this->config->contexts);
+        $filter = '(&('.$this->config->field_map_email.'='.ldap_filter_addslashes($email).')'.
+                $this->config->objectclass.')';
 
         // Connect to LDAP.
-        $ldapconnection = $authplugin->ldap_connect();
+        $ldapconnection = $this->ldap_connect();
 
-        // Array for saving the user's ids which are found in the configured LDAP contexts.
-        $uidsfound = array();
+        // Make sure that the LDAP connection is closed again, regardless of how we leave the search.
+        try {
+            // Array for saving the user's ids which are found in the configured LDAP contexts.
+            $uidsfound = array();
 
-        // Look for users matching the given email adress in LDAP.
-        foreach ($contexts as $context) {
-            // Verify that the given context is valid.
-            $context = trim($context);
-            if (empty($context)) {
-                continue;
+            // Look for users matching the given email adress in LDAP.
+            foreach ($contexts as $context) {
+                // Verify that the given context is valid.
+                $context = trim($context);
+                if (empty($context)) {
+                    continue;
+                }
+
+                // Search LDAP.
+                if ($this->config->search_sub) {
+                    // Use ldap_search to find first user from subtree.
+                    $ldapresult = ldap_search($ldapconnection, $context, $filter, array($this->config->user_attribute));
+                } else {
+                    // Search only in this context.
+                    $ldapresult = ldap_list($ldapconnection, $context, $filter, array($this->config->user_attribute));
+                }
+
+                // If there is no LDAP result or if the user was not found in this context, continue with next context.
+                if (!$ldapresult || ldap_count_entries($ldapconnection, $ldapresult) == 0) {
+                    continue;
+                }
+
+                // If there is not exactly one matching user, we can't continue, call parent hook and return.
+                if (ldap_count_entries($ldapconnection, $ldapresult) != 1) {
+                    parent::loginpage_hook(); // Call parent function to retain its functionality.
+                    return;
+                }
+
+                // Get this one matching user entry.
+                if (!$ldapentry = ldap_first_entry($ldapconnection, $ldapresult)) {
+                    parent::loginpage_hook(); // Call parent function to retain its functionality.
+                    return;
+                }
+
+                // Get the uid attribute's value(s) from this user entry.
+                $values = ldap_get_values($ldapconnection, $ldapentry, $this->config->user_attribute);
+
+                // If there is not exactly one copy of the uid attribute in the LDAP user entry, we don't know which one to use,
+                // call parent hook and return.
+                if ($values['count'] != 1) {
+                    parent::loginpage_hook(); // Call parent function to retain its functionality.
+                    return;
+                }
+
+                // Remember this one user's uid attribute.
+                $uidsfound[] = $values[0];
+
+                unset($ldapresult); // Free mem!
             }
 
-            // Search LDAP.
-            if ($authplugin->config->search_sub) {
-                // Use ldap_search to find first user from subtree.
-                $ldapresult = ldap_search($ldapconnection, $context, $filter, array($authplugin->config->user_attribute));
+            // After we have checked all contexts, verify that we have found only one user in total.
+            // If not, we can't continue, call parent hook and return.
+            if (count($uidsfound) != 1) {
+                parent::loginpage_hook(); // Call parent function to retain its functionality.
+                return;
             } else {
-                // Search only in this context.
-                $ldapresult = ldap_list($ldapconnection, $context, $filter, array($authplugin->config->user_attribute));
-            }
-
-            // If there is no LDAP result or if the user was not found in this context, continue with next context.
-            if (!$ldapresult || ldap_count_entries($ldapconnection, $ldapresult) == 0) {
-                continue;
-            }
-
-            // If there is not exactly one matching user, we can't continue, call parent hook and return.
-            if (ldap_count_entries($ldapconnection, $ldapresult) != 1) {
+                // Success!
+                // Replace the form data's username with the user attribute from LDAP, it will be held in the global $frm variable.
+                $frm->username = $uidsfound[0];
                 parent::loginpage_hook(); // Call parent function to retain its functionality.
                 return;
             }
-
-            // Get this one matching user entry.
-            if (!$ldapentry = ldap_first_entry($ldapconnection, $ldapresult)) {
-                parent::loginpage_hook(); // Call parent function to retain its functionality.
-                return;
-            }
-
-            // Get the uid attribute's value(s) from this user entry.
-            $values = ldap_get_values($ldapconnection, $ldapentry, $authplugin->config->user_attribute);
-
-            // If there is not exactly one copy of the uid attribute in the LDAP user entry, we don't know which one to use,
-            // call parent hook and return.
-            if ($values['count'] != 1) {
-                parent::loginpage_hook(); // Call parent function to retain its functionality.
-                return;
-            }
-
-            // Remember this one user's uid attribute.
-            $uidsfound[] = $values[0];
-
-            unset($ldapresult); // Free mem!
+        } finally {
+            // Close the LDAP connection.
+            $this->ldap_close();
         }
+    }
 
-        // After we have checked all contexts, verify that we have found only one user in total.
-        // If not, we can't continue, call parent hook and return.
-        if (count($uidsfound) != 1) {
-            parent::loginpage_hook(); // Call parent function to retain its functionality.
-            return;
-        } else {
-            // Success!
-            // Replace the form data's username with the user attribute from LDAP, it will be held in the global $frm variable.
-            $frm->username = $uidsfound[0];
-            parent::loginpage_hook(); // Call parent function to retain its functionality.
-            return;
-        }
+    /**
+     * Synchronizes the user's system roles from LDAP.
+     *
+     * This function overrides the function from auth_ldap to remove the scope from the username if configured.
+     * This must be done here as the parent function passes the username to is_role() which is a private function
+     * in auth_ldap, which looks up the user in LDAP and which thus can't be overridden by this plugin.
+     *
+     * @param stdClass $user The user to sync (without system magic quotes)
+     * @return void
+     */
+    public function sync_roles($user) {
+        // Work on a copy of the user object to avoid changing the username in the calling code.
+        $user = clone $user;
+
+        // Remove the scope from the username if configured.
+        $user->username = $this->strip_scope_from_username($user->username);
+
+        // Call the parent function.
+        parent::sync_roles($user);
+    }
+
+    /**
+     * Returns the users whose system roles have to be synchronized by the roles sync task.
+     *
+     * In contrast to the roles sync task in auth_ldap, this function respects the sync_authtype setting of this plugin
+     * and, if configured, ignores the users outside the configured username scope. It does not return deleted users as
+     * they can't have any role assignments anymore.
+     *
+     * The caller is responsible for closing the returned recordset.
+     *
+     * @return moodle_recordset
+     */
+    public function get_users_for_roles_sync(): moodle_recordset {
+        global $CFG, $DB;
+
+        $sql = 'SELECT u.*
+                  FROM {user} u
+                 WHERE u.deleted = 0 AND u.auth = :auth AND u.mnethostid = :mnethostid' .
+                 $this->get_remove_users_scope_filter_sql_snippet('u.username');
+
+        return $DB->get_recordset_sql($sql, array_merge(
+            [
+                'auth' => $this->config->sync_authtype,
+                'mnethostid' => $CFG->mnet_localhost_id,
+            ],
+            $this->get_remove_users_scope_filter_sql_params()
+        ));
     }
 
     /**
@@ -845,6 +985,35 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
     }
 
     /**
+     * Helper function to check if a user is a protected internal account which must never be suspended or deleted
+     * by the sync task.
+     *
+     * This applies the same rule as delete_user() in Moodle core does for deleting users: The guest user and site admins
+     * who authenticate with the manual auth plugin are protected. Site admins with any other auth type are not protected
+     * as they have to be deprovisioned when they disappear from LDAP.
+     * Moodle core does not apply this rule when suspending users, but this plugin does.
+     *
+     * This check is only relevant if the sync task is used for another auth type than LDAP (see the sync_authtype setting),
+     * especially if it is set to manual.
+     *
+     * @param stdClass $user The user record
+     * @return bool
+     */
+    private function is_protected_internal_user(stdClass $user): bool {
+        // The guest user is always protected.
+        if ($user->username === 'guest' || isguestuser($user)) {
+            return true;
+        }
+
+        // Internal site admins are protected.
+        if ($user->auth === 'manual' && is_siteadmin($user)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Returns additional SQL to restrict remove/update queries to users within the configured sync_scope.
      *
      * When ignore_other_scopes is enabled, only Moodle users whose username ends with sync_scope
@@ -861,6 +1030,46 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         }
 
         return ' AND ' . $DB->sql_like($userfield, ':scope', false, false);
+    }
+
+    /**
+     * Helper function to forget the grace period start times which are not valid anymore.
+     *
+     * A grace period start time is only valid as long as the synchronization task handles the user continuously with the
+     * grace period mode. If an admin changes the "Removed ext user", "Moodle authentication type when synchronizing users",
+     * "Username scope when synchronizing users" or "Ignore users outside the configured username scope" setting, start times
+     * might remain on users who are not handled (this way) anymore. If the setting is changed back later, such an outdated
+     * start time would be picked up again and the user could be deleted without any grace period.
+     *
+     * This is done with every run of the synchronization task instead of in a callback of the settings, as it then works
+     * regardless of the way how a setting was changed (admin GUI, CLI or config.php).
+     *
+     * @return void
+     */
+    private function cleanup_grace_period_start_times(): void {
+        global $DB;
+
+        // If the grace period mode is not in use, no start time is valid.
+        if ($this->config->removeuser != AUTH_REMOVEUSER_DELETEWITHGRACEPERIOD) {
+            $DB->delete_records('user_preferences', ['name' => AUTH_LDAP_SYNCPLUS_SUSPENDEDAT_PREFERENCE]);
+            return;
+        }
+
+        // Otherwise, a start time is only valid for a suspended user who has the auth type which is synchronized
+        // and who is within the username scope (if users outside of the scope are ignored).
+        $select = "name = :suspendedatpreference
+                   AND userid NOT IN (
+                       SELECT u.id
+                         FROM {user} u
+                        WHERE u.auth = :auth
+                              AND u.suspended = 1
+                              AND u.deleted = 0".
+                              $this->get_remove_users_scope_filter_sql_snippet('u.username')."
+                   )";
+        $DB->delete_records_select('user_preferences', $select, array_merge(
+            ['suspendedatpreference' => AUTH_LDAP_SYNCPLUS_SUSPENDEDAT_PREFERENCE, 'auth' => $this->config->sync_authtype],
+            $this->get_remove_users_scope_filter_sql_params()
+        ));
     }
 
     /**
@@ -892,7 +1101,15 @@ class auth_plugin_ldap_syncplus extends auth_plugin_ldap {
         }
 
         // If a sync scope is configured, we need to strip it from the username.
-        return str_replace($this->config->sync_scope, '', $username);
+        // The scope is a suffix, so it is only stripped from the end of the username and only once. Any other occurrence
+        // of the scope string within the username is part of the username and must be kept, otherwise the user
+        // would be mapped to another user in LDAP.
+        if (str_ends_with($username, $this->config->sync_scope)) {
+            return substr($username, 0, -strlen($this->config->sync_scope));
+        }
+
+        // If the username does not end with the scope, return the username as is.
+        return $username;
     }
 
     /**

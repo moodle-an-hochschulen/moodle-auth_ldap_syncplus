@@ -62,19 +62,24 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "Suspended" in the "User 01" "table_row"
+    And the user "user01" should not have a grace period start time
     And I should not see "Suspended" in the "User 03" "table_row"
+    And the user "user03" should not have a grace period start time
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
     Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "Suspended" in the "User 01" "table_row"
+    And the user "user01" should not have a grace period start time
     And I should see "Suspended" in the "User 03" "table_row"
+    And the user "user03" should have a grace period start time
     And I pretend the suspended user "user03" was suspended "3" days ago
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
     Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "Suspended" in the "User 01" "table_row"
+    And the user "user01" should not have a grace period start time
 
   Scenario: The LDAP synchronization task should revive suspended users who have re-appeared in LDAP within the grace period
     Given the following config values are set as admin:
@@ -92,13 +97,17 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should see "User 02" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "Suspended" in the "User 01" "table_row"
+    And the user "user01" should not have a grace period start time
     And I should see "Suspended" in the "User 02" "table_row"
+    And the user "user02" should have a grace period start time
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
     Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should see "User 02" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "Suspended" in the "User 01" "table_row"
+    And the user "user01" should not have a grace period start time
     And I should not see "Suspended" in the "User 02" "table_row"
+    And the user "user02" should not have a grace period start time
 
   Scenario: The LDAP synchronization task should suspend users who have disappeared in LDAP (Countercheck / Moodle core behaviour)
     Given the following config values are set as admin:
@@ -114,13 +123,17 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "Suspended" in the "User 01" "table_row"
+    And the user "user01" should not have a grace period start time
     And I should not see "Suspended" in the "User 03" "table_row"
+    And the user "user03" should not have a grace period start time
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
     Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "Suspended" in the "User 01" "table_row"
+    And the user "user01" should not have a grace period start time
     And I should see "Suspended" in the "User 03" "table_row"
+    And the user "user03" should not have a grace period start time
 
   Scenario: The LDAP synchronization task should revive suspended users who have re-appeared in LDAP after they have been suspended
     Given the following config values are set as admin:
@@ -137,13 +150,17 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should see "User 02" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "Suspended" in the "User 01" "table_row"
+    And the user "user01" should not have a grace period start time
     And I should see "Suspended" in the "User 02" "table_row"
+    And the user "user02" should have a grace period start time
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
     Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should see "User 02" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "Suspended" in the "User 01" "table_row"
+    And the user "user01" should not have a grace period start time
     And I should not see "Suspended" in the "User 02" "table_row"
+    And the user "user02" should not have a grace period start time
 
   Scenario: The LDAP synchronization task should delete users who have disappeared in LDAP (Countercheck / Moodle core behaviour)
     Given the following config values are set as admin:
@@ -159,12 +176,15 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "Suspended" in the "User 01" "table_row"
+    And the user "user01" should not have a grace period start time
     And I should not see "Suspended" in the "User 03" "table_row"
+    And the user "user03" should not have a grace period start time
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
     Then I should see "User 01" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "Suspended" in the "User 01" "table_row"
+    And the user "user01" should not have a grace period start time
 
   Scenario: The LDAP synchronization task should not create Moodle accounts for all LDAP users
     Given the following config values are set as admin:
@@ -329,10 +349,12 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "Suspended" in the "User 03" "table_row"
+    And the user "user03<scope>" should not have a grace period start time
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
     Then I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should see "Suspended" in the "User 03" "table_row"
+    And the user "user03<scope>" should not have a grace period start time
 
     Examples:
       | authtype      | authlabel               | context    | scope        | filter  |
@@ -361,10 +383,12 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     And I should see "User <user1number>" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should see "Suspended" in the "User <user1number>" "table_row"
+    And the user "user<user1number><scope>" should have a grace period start time
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
     Then I should see "User <user1number>" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "Suspended" in the "User <user1number>" "table_row"
+    And the user "user<user1number><scope>" should not have a grace period start time
 
     Examples:
       | authtype      | authlabel               | context    | scope        | filter  | user1number |
@@ -392,10 +416,12 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "Suspended" in the "User 03" "table_row"
+    And the user "user03<scope>" should not have a grace period start time
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
     Then I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should see "Suspended" in the "User 03" "table_row"
+    And the user "user03<scope>" should have a grace period start time
     And I pretend the suspended user "user03<scope>" was suspended "3" days ago
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
@@ -429,10 +455,12 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     And I should see "User <user1number>" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should see "Suspended" in the "User <user1number>" "table_row"
+    And the user "user<user1number><scope>" should have a grace period start time
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
     Then I should see "User <user1number>" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "Suspended" in the "User <user1number>" "table_row"
+    And the user "user<user1number><scope>" should not have a grace period start time
 
     Examples:
       | authtype      | authlabel               | context    | scope        | filter  | user1number |
@@ -522,13 +550,17 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should see "User 04net" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "Suspended" in the "User 03" "table_row"
+    And the user "user03@example.org" should not have a grace period start time
     And I should not see "Suspended" in the "User 04net" "table_row"
+    And the user "user04@example.net" should not have a grace period start time
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
     Then I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should see "Suspended" in the "User 03" "table_row"
+    And the user "user03@example.org" should not have a grace period start time
     And I should see "User 04net" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I <shouldornot> see "Suspended" in the "User 04net" "table_row"
+    And the user "user04@example.net" should not have a grace period start time
 
     Examples:
       | filter  | ignore_other_scopes | shouldornot |
@@ -557,19 +589,24 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should see "User 04net" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "Suspended" in the "User 03" "table_row"
+    And the user "user03@example.org" should not have a grace period start time
     And I should not see "Suspended" in the "User 04net" "table_row"
+    And the user "user04@example.net" should not have a grace period start time
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
     Then I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should see "Suspended" in the "User 03" "table_row"
+    And the user "user03@example.org" should have a grace period start time
     And I should see "User 04net" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "Suspended" in the "User 04net" "table_row"
+    And the user "user04@example.net" should not have a grace period start time
     And I pretend the suspended user "user03@example.org" was suspended "3" days ago
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
     Then I should not see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should see "User 04net" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "Suspended" in the "User 04net" "table_row"
+    And the user "user04@example.net" should not have a grace period start time
 
     Examples:
       | filter  |
@@ -596,13 +633,17 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should see "User 04net" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "Suspended" in the "User 03" "table_row"
+    And the user "user03@example.org" should not have a grace period start time
     And I should not see "Suspended" in the "User 04net" "table_row"
+    And the user "user04@example.net" should not have a grace period start time
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
     And I reload the page
     Then I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should see "Suspended" in the "User 03" "table_row"
+    And the user "user03@example.org" should have a grace period start time
     And I should see "User 04net" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should see "Suspended" in the "User 04net" "table_row"
+    And the user "user04@example.net" should have a grace period start time
     And I pretend the suspended user "user03@example.org" was suspended "3" days ago
     And I pretend the suspended user "user04@example.net" was suspended "3" days ago
     And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
@@ -708,17 +749,18 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     Then I should see "User 03" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I <suspendedshouldornot> see "Suspended" in the "User 03" "table_row"
+    And the user "user03@example.org" <starttimeshouldornot> have a grace period start time
 
     # Example 1: Suspend query - the user does not exist in LDAP with the configured scope, so the user is suspended.
     # Example 2: Grace period suspend query - the user does not exist in LDAP with the configured scope,
-    #            so the user is suspended.
+    #            so the user is suspended and the grace period starts.
     # Example 3: Full delete query with the ignore_other_scopes LIKE filter - the user has another scope than
     #            the configured scope, so the user is neither deleted nor suspended.
     Examples:
-      | removeuser | ignoreotherscopes | suspendedshouldornot |
-      | 1          | 0                 | should               |
-      | 3          | 0                 | should               |
-      | 2          | 1                 | should not           |
+      | removeuser | ignoreotherscopes | suspendedshouldornot | starttimeshouldornot |
+      | 1          | 0                 | should               | should not           |
+      | 3          | 0                 | should               | should               |
+      | 2          | 1                 | should not           | should not           |
 
   Scenario Outline: The LDAP synchronization task does not break if the sync scope contains a single quote (suspended users)
     Given the following config values are set as admin:
@@ -739,15 +781,17 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     Then I should see "User 11" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should see "Suspended" in the "User 11" "table_row"
+    And the user "user11@example.org" <starttimeshouldornot> have a grace period start time
 
     # Example 1: Revive query - user11 exists in LDAP, but it does not match the Moodle user due to the configured scope,
-    #            so the user is not revived and stays suspended.
+    #            so the user is not revived and stays suspended. As the grace period mode is not in use, the (pretended)
+    #            grace period start time is removed.
     # Example 2: Grace period revive query - same as example 1. Additionally, the grace period has not passed yet,
-    #            so the user is not deleted either.
+    #            so the user is not deleted either and keeps the grace period start time.
     Examples:
-      | removeuser |
-      | 1          |
-      | 3          |
+      | removeuser | starttimeshouldornot |
+      | 1          | should not           |
+      | 3          | should               |
 
   Scenario Outline: The LDAP synchronization task does not break if the sync scope contains a single quote (deleted users)
     Given the following config values are set as admin:
@@ -795,3 +839,408 @@ Feature: Checking that all LDAP (Sync Plus) specific settings are working
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     Then I should not see "User 11" in the "[data-region='report-user-list-wrapper']" "css_element"
     And I should not see "User 12" in the "[data-region='report-user-list-wrapper']" "css_element"
+
+  # The guest user and the admin user are manual users who do not exist in LDAP, just like user03.
+  # If the sync task is (mis)configured to sync manual users, user03 is suspended / deleted as expected,
+  # but the guest user and the internal site admin must be skipped.
+  # The checks are done directly in the database as the guest user is not shown in the user list.
+  Scenario Outline: The LDAP synchronization task does not suspend or delete the guest user and internal site admins when it is re-used for manual users
+    Given the following config values are set as admin:
+      | config                         | value        | plugin             |
+      | removeuser                     | <removeuser> | auth_ldap_syncplus |
+      | sync_script_createuser_enabled | 0            | auth_ldap_syncplus |
+      | sync_authtype                  | manual       | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username | firstname | lastname | email              | auth   |
+      | user03   | User      | 03       | user03@example.org | manual |
+    When I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    Then the user "user03" should be <user03state>
+    And the user "admin" should not be deleted
+    And the user "admin" should not be suspended
+    And the user "admin" should not have a grace period start time
+    And the user "guest" should not be deleted
+    And the user "guest" should not be suspended
+    And the user "guest" should not have a grace period start time
+
+    # Example 1: Suspend query - user03 is suspended, the guest user and the admin user are skipped.
+    # Example 2: Full delete query - user03 is deleted, the guest user and the admin user are skipped.
+    Examples:
+      | removeuser | user03state |
+      | 1          | suspended   |
+      | 2          | deleted     |
+
+  # This is the same check as in the previous scenario, but for the grace period mode.
+  # In the first run, the grace period suspend query suspends user03 and skips the guest user and the admin user.
+  # The grace period delete query of the first run finds the guest user and the admin user as well, so they must be
+  # skipped there, too. This is checked by making sure that no grace period is started for them.
+  # In the second run, user03 is deleted after the grace period has passed.
+  Scenario: The LDAP synchronization task does not suspend or delete the guest user and internal site admins when it is re-used for manual users (with grace period)
+    Given the following config values are set as admin:
+      | config                         | value  | plugin             |
+      | removeuser                     | 3      | auth_ldap_syncplus |
+      | removeuser_graceperiod         | 2      | auth_ldap_syncplus |
+      | sync_script_createuser_enabled | 0      | auth_ldap_syncplus |
+      | sync_authtype                  | manual | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username | firstname | lastname | email              | auth   |
+      | user03   | User      | 03       | user03@example.org | manual |
+    When I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    Then the user "user03" should be suspended
+    And the user "user03" should have a grace period start time
+    And the user "admin" should not be deleted
+    And the user "admin" should not be suspended
+    And the user "admin" should not have a grace period start time
+    And the user "guest" should not be deleted
+    And the user "guest" should not be suspended
+    And the user "guest" should not have a grace period start time
+    And I pretend the suspended user "user03" was suspended "3" days ago
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And the user "user03" should be deleted
+    And the user "admin" should not be deleted
+    And the user "admin" should not be suspended
+    And the user "admin" should not have a grace period start time
+    And the user "guest" should not be deleted
+    And the user "guest" should not be suspended
+    And the user "guest" should not have a grace period start time
+
+  # Countercheck for the previous scenarios: Only site admins who authenticate with the manual auth plugin are protected.
+  # A site admin with any other auth type who has disappeared from LDAP has to be deprovisioned just like any other user.
+  # The admin user is a manual user and is not covered by the sync here, so the admin user must remain untouched.
+  Scenario Outline: The LDAP synchronization task suspends or deletes site admins who do not authenticate with the manual auth plugin
+    Given the following config values are set as admin:
+      | config                         | value        | plugin             |
+      | removeuser                     | <removeuser> | auth_ldap_syncplus |
+      | sync_script_createuser_enabled | 0            | auth_ldap_syncplus |
+      | sync_authtype                  | <authtype>   | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username | firstname | lastname | email              | auth       |
+      | user03   | User      | 03       | user03@example.org | <authtype> |
+    And the user "user03" is a site admin
+    When I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    Then the user "user03" should be <user03state>
+    And the user "admin" should not be deleted
+    And the user "admin" should not be suspended
+    And the user "admin" should not have a grace period start time
+
+    # Example 1 and 3: Suspend query - user03 is suspended although being a site admin.
+    # Example 2 and 4: Full delete query - user03 is deleted although being a site admin.
+    Examples:
+      | authtype      | removeuser | user03state |
+      | ldap_syncplus | 1          | suspended   |
+      | ldap_syncplus | 2          | deleted     |
+      | shibboleth    | 1          | suspended   |
+      | shibboleth    | 2          | deleted     |
+
+  # This is the same countercheck as in the previous scenario, but for the grace period mode.
+  # In the first run, the grace period suspend query suspends user03 although being a site admin.
+  # In the second run, user03 is deleted after the grace period has passed.
+  Scenario Outline: The LDAP synchronization task suspends and deletes site admins who do not authenticate with the manual auth plugin (with grace period)
+    Given the following config values are set as admin:
+      | config                         | value      | plugin             |
+      | removeuser                     | 3          | auth_ldap_syncplus |
+      | removeuser_graceperiod         | 2          | auth_ldap_syncplus |
+      | sync_script_createuser_enabled | 0          | auth_ldap_syncplus |
+      | sync_authtype                  | <authtype> | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username | firstname | lastname | email              | auth       |
+      | user03   | User      | 03       | user03@example.org | <authtype> |
+    And the user "user03" is a site admin
+    When I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    Then the user "user03" should be suspended
+    And the user "user03" should have a grace period start time
+    And the user "admin" should not be deleted
+    And the user "admin" should not be suspended
+    And the user "admin" should not have a grace period start time
+    And I pretend the suspended user "user03" was suspended "3" days ago
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And the user "user03" should be deleted
+    And the user "admin" should not be deleted
+    And the user "admin" should not be suspended
+    And the user "admin" should not have a grace period start time
+
+    Examples:
+      | authtype      |
+      | ldap_syncplus |
+      | shibboleth    |
+
+  # The grace period is measured from the time when the synchronization task has suspended a user (or has first seen an
+  # already suspended user as missing in LDAP), and not from the last modification of the user.
+  # user03 does not exist in the LDAP server and was suspended by other means than the grace period mode of the task long ago.
+  # In the first run, user03 must not be deleted, but the grace period must start.
+  # In the second run, user03 is still within the grace period and must not be deleted, even though the user was not modified
+  # for a longer time than the grace period.
+  # In the third run, user03 is deleted after the grace period has passed.
+  Scenario: The LDAP synchronization task grants the full grace period to users who were suspended by other means than the task itself
+    Given the following config values are set as admin:
+      | config                         | value | plugin             |
+      | removeuser                     | 3     | auth_ldap_syncplus |
+      | removeuser_graceperiod         | 2     | auth_ldap_syncplus |
+      | sync_script_createuser_enabled | 0     | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username | firstname | lastname | email              | auth          | suspended |
+      | user03   | User      | 03       | user03@example.org | ldap_syncplus | 1         |
+    And I pretend the user "user03" was last modified "3" days ago
+    And the user "user03" should not have a grace period start time
+    When I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    Then the user "user03" should not be deleted
+    And the user "user03" should be suspended
+    And the user "user03" should have a grace period start time
+    And I pretend the user "user03" was last modified "3" days ago
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And the user "user03" should not be deleted
+    And the user "user03" should be suspended
+    And the user "user03" should have a grace period start time
+    And I pretend the grace period of user "user03" started "3" days ago
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And the user "user03" should be deleted
+
+  # A grace period start time is only valid as long as the synchronization task handles the user continuously with the
+  # grace period mode. user03 does not exist in the LDAP server.
+  # In the first run, user03 is suspended and the grace period starts.
+  # In the second run, the setting which is given in the example has been changed, so that user03 is not handled with the
+  # grace period mode anymore. user03 remains suspended, but the grace period start time must be removed, even though it
+  # is (pretended to be) older than the grace period.
+  # In the third run, the setting has been changed back. user03 must not be deleted, but must get a fresh grace period.
+  # Example 1: The "Removed ext user" setting is changed to "Keep internal".
+  # Example 2: The "Moodle authentication type when synchronizing users" setting is changed to "manual".
+  # Example 3: The "Ignore users outside the configured username scope" setting is enabled with a scope which user03 is not in.
+  Scenario Outline: The LDAP synchronization task removes the grace period start time of users who are not handled with the grace period mode anymore
+    Given the following config values are set as admin:
+      | config                         | value         | plugin             |
+      | removeuser                     | 3             | auth_ldap_syncplus |
+      | removeuser_graceperiod         | 2             | auth_ldap_syncplus |
+      | sync_script_createuser_enabled | 0             | auth_ldap_syncplus |
+      | sync_authtype                  | ldap_syncplus | auth_ldap_syncplus |
+      | sync_scope                     | @example.org  | auth_ldap_syncplus |
+      | ignore_other_scopes            | 0             | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username | firstname | lastname | email              | auth          |
+      | user03   | User      | 03       | user03@example.org | ldap_syncplus |
+    When I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    Then the user "user03" should be suspended
+    And the user "user03" should have a grace period start time
+    And I pretend the grace period of user "user03" started "3" days ago
+    And the following config values are set as admin:
+      | config    | value      | plugin             |
+      | <setting> | <newvalue> | auth_ldap_syncplus |
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And the user "user03" should not be deleted
+    And the user "user03" should be suspended
+    And the user "user03" should not have a grace period start time
+    And the following config values are set as admin:
+      | config    | value      | plugin             |
+      | <setting> | <oldvalue> | auth_ldap_syncplus |
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And the user "user03" should not be deleted
+    And the user "user03" should be suspended
+    And the user "user03" should have a grace period start time
+
+    Examples:
+      | setting             | oldvalue      | newvalue |
+      | removeuser          | 3             | 0        |
+      | sync_authtype       | ldap_syncplus | manual   |
+      | ignore_other_scopes | 0             | 1        |
+
+  # The grace period start time must not remain on a user who is not suspended anymore.
+  # The synchronization task removes it when it revives a user, but an admin can unsuspend a user manually as well.
+  # As long as the user remains suspended, modifying the user must not remove the grace period start time.
+  # Please note: This scenario needs JavaScript as unchecking the "Suspended account" checkbox is not submitted without it.
+  @javascript
+  Scenario: The grace period start time is removed when a suspended user is unsuspended manually
+    Given the following "users" exist:
+      | username | firstname | lastname | email              | auth          |
+      | user03   | User      | 03       | user03@example.org | ldap_syncplus |
+    And I pretend the suspended user "user03" was suspended "1" days ago
+    And the user "user03" should have a grace period start time
+    When I am on the "user03" "user > editing" page logged in as "admin"
+    And I set the field "City/town" to "Ulm"
+    And I press "Update profile"
+    Then the user "user03" should be suspended
+    And the user "user03" should have a grace period start time
+    And I am on the "user03" "user > editing" page
+    And I set the field "Suspended account" to "0"
+    And I press "Update profile"
+    And the user "user03" should not be suspended
+    And the user "user03" should not have a grace period start time
+
+  # In LDAP, group01 contains the first user of each context (user01 / user11) and group02 contains the second user
+  # of each context (user02 / user12).
+  # In the first run, the manager role is mapped to group01, so the first user gets the role and the second user does not.
+  # In the second run, the manager role is mapped to group02, so the role is removed from the first user again and is
+  # assigned to the second user.
+  Scenario Outline: The LDAP roles synchronization task assigns and unassigns system roles for LDAP users and can be re-used for non-LDAP users
+    Given the following config values are set as admin:
+      | config               | value                                  | plugin             |
+      | contexts             | ou=<context>,dc=example,dc=org         | auth_ldap_syncplus |
+      | sync_authtype        | <authtype>                             | auth_ldap_syncplus |
+      | sync_scope           | <scope>                                | auth_ldap_syncplus |
+      | memberattribute      | member                                 | auth_ldap_syncplus |
+      | memberattribute_isdn | 1                                      | auth_ldap_syncplus |
+      | managercontext       | cn=group01,ou=groups,dc=example,dc=org | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username                 | firstname | lastname      | email                         | auth       |
+      | user<user1number><scope> | User      | <user1number> | user<user1number>@example.org | <authtype> |
+      | user<user2number><scope> | User      | <user2number> | user<user2number>@example.org | <authtype> |
+    When I log in as "admin"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_roles"
+    And I navigate to "Users > Permissions > Assign system roles" in site administration
+    Then I should see "User <user1number>" in the "Manager" "table_row"
+    And I should not see "User <user2number>" in the "Manager" "table_row"
+    And the following config values are set as admin:
+      | config         | value                                  | plugin             |
+      | managercontext | cn=group02,ou=groups,dc=example,dc=org | auth_ldap_syncplus |
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_roles"
+    And I reload the page
+    And I should not see "User <user1number>" in the "Manager" "table_row"
+    And I should see "User <user2number>" in the "Manager" "table_row"
+
+    Examples:
+      | authtype      | context    | scope        | user1number | user2number |
+      | ldap_syncplus | department |              | 01          | 02          |
+      | shibboleth    | department |              | 01          | 02          |
+      | shibboleth    | scoped     |              | 11          | 12          |
+      | shibboleth    | scoped     | @example.org | 11          | 12          |
+
+  # Countercheck for the previous scenario: The roles synchronization task only handles the users of the configured
+  # authentication type. The users exist in LDAP and are members of the mapped group, but as they are manual users,
+  # they must not get the role.
+  Scenario Outline: The LDAP roles synchronization task does not assign system roles to users of other authentication types
+    Given the following config values are set as admin:
+      | config               | value                                  | plugin             |
+      | sync_authtype        | <authtype>                             | auth_ldap_syncplus |
+      | memberattribute      | member                                 | auth_ldap_syncplus |
+      | memberattribute_isdn | 1                                      | auth_ldap_syncplus |
+      | managercontext       | cn=group01,ou=groups,dc=example,dc=org | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username | firstname | lastname | email              | auth   |
+      | user01   | User      | 01       | user01@example.org | manual |
+    When I log in as "admin"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_roles"
+    And I navigate to "Users > Permissions > Assign system roles" in site administration
+    Then I should not see "User 01" in the "Manager" "table_row"
+
+    Examples:
+      | authtype      |
+      | ldap_syncplus |
+      | shibboleth    |
+
+  # user11@example.org is inside the configured scope, user11@example.net is outside of it.
+  # If the scope is removed from both usernames, both users would match user11 in LDAP who is a member of the mapped group.
+  # As the scope is only removed from usernames which contain it, user11@example.net is not found in LDAP and does not
+  # get the role, regardless of the ignore_other_scopes setting.
+  Scenario Outline: The LDAP roles synchronization task does not assign system roles to non-LDAP users outside sync_scope
+    Given the following config values are set as admin:
+      | config               | value                                  | plugin             |
+      | contexts             | ou=scoped,dc=example,dc=org            | auth_ldap_syncplus |
+      | sync_authtype        | shibboleth                             | auth_ldap_syncplus |
+      | sync_scope           | @example.org                           | auth_ldap_syncplus |
+      | ignore_other_scopes  | <ignore_other_scopes>                  | auth_ldap_syncplus |
+      | memberattribute      | member                                 | auth_ldap_syncplus |
+      | memberattribute_isdn | 1                                      | auth_ldap_syncplus |
+      | managercontext       | cn=group01,ou=groups,dc=example,dc=org | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username           | firstname | lastname | email              | auth       |
+      | user11@example.org | User      | 11       | user11@example.org | shibboleth |
+      | user11@example.net | User      | 11net    | user11@example.net | shibboleth |
+    When I log in as "admin"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_roles"
+    And I navigate to "Users > Permissions > Assign system roles" in site administration
+    Then I should see "User 11" in the "Manager" "table_row"
+    And I should not see "User 11net" in the "Manager" "table_row"
+
+    Examples:
+      | ignore_other_scopes |
+      | 0                   |
+      | 1                   |
+
+  # The scope is a suffix and must only be stripped from the end of the username when a user is looked up in LDAP.
+  # The tricky user contains the scope string in the middle of the username or twice. If the scope string was stripped
+  # everywhere, the tricky user would be looked up as user11 in LDAP and would wrongly be updated with the profile
+  # fields of user11.
+  # user11@example.org is the countercheck: This user is looked up as user11 in LDAP and is updated.
+  Scenario Outline: The LDAP synchronization task strips the sync scope only from the end of the username when updating non-LDAP users
+    Given the following config values are set as admin:
+      | config                         | value                       | plugin             |
+      | contexts                       | ou=scoped,dc=example,dc=org | auth_ldap_syncplus |
+      | sync_script_createuser_enabled | 0                           | auth_ldap_syncplus |
+      | sync_authtype                  | shibboleth                  | auth_ldap_syncplus |
+      | sync_scope                     | @example.org                | auth_ldap_syncplus |
+      | ignore_other_scopes            | <ignore_other_scopes>       | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username           | firstname | lastname | email              | auth       |
+      | user11@example.org | Foo       | Bar      | user11@example.org | shibboleth |
+      | <trickyusername>   | Tricky    | Scope    | tricky@example.org | shibboleth |
+    When I log in as "admin"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I run all adhoc tasks
+    And I navigate to "Users > Accounts > Browse list of users" in site administration
+    Then I should see "User 11" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should not see "Foo Bar" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "Tricky Scope" in the "[data-region='report-user-list-wrapper']" "css_element"
+
+    # Example 1: The scope string is in the middle of the username and users outside the scope are not ignored,
+    #            so the user is processed, but is not found in LDAP.
+    # Example 2: The scope string is in the middle of the username and users outside the scope are ignored,
+    #            so the user is not processed at all.
+    # Example 3 and 4: The username contains the scope string twice and ends with it, so the user is inside the scope
+    #            and is processed regardless of the ignore_other_scopes setting, but is not found in LDAP.
+    Examples:
+      | trickyusername                 | ignore_other_scopes |
+      | user@example.org11             | 0                   |
+      | user@example.org11             | 1                   |
+      | user@example.org11@example.org | 0                   |
+      | user@example.org11@example.org | 1                   |
+
+  # This is the same check as in the previous scenario, but for the roles synchronization task.
+  # If the scope string was stripped everywhere, the tricky user would be looked up as user11 in LDAP, who is a member
+  # of the mapped group, and would wrongly get the role.
+  # user11@example.org is the countercheck: This user is looked up as user11 in LDAP and gets the role.
+  Scenario Outline: The LDAP roles synchronization task strips the sync scope only from the end of the username
+    Given the following config values are set as admin:
+      | config               | value                                  | plugin             |
+      | contexts             | ou=scoped,dc=example,dc=org            | auth_ldap_syncplus |
+      | sync_authtype        | shibboleth                             | auth_ldap_syncplus |
+      | sync_scope           | @example.org                           | auth_ldap_syncplus |
+      | ignore_other_scopes  | <ignore_other_scopes>                  | auth_ldap_syncplus |
+      | memberattribute      | member                                 | auth_ldap_syncplus |
+      | memberattribute_isdn | 1                                      | auth_ldap_syncplus |
+      | managercontext       | cn=group01,ou=groups,dc=example,dc=org | auth_ldap_syncplus |
+    And the following "users" exist:
+      | username           | firstname | lastname | email              | auth       |
+      | user11@example.org | User      | 11       | user11@example.org | shibboleth |
+      | <trickyusername>   | Tricky    | Scope    | tricky@example.org | shibboleth |
+    When I log in as "admin"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_roles"
+    And I navigate to "Users > Permissions > Assign system roles" in site administration
+    Then I should see "User 11" in the "Manager" "table_row"
+    And I should not see "Tricky Scope" in the "Manager" "table_row"
+
+    # See the previous scenario for the explanation of the examples.
+    Examples:
+      | trickyusername                 | ignore_other_scopes |
+      | user@example.org11             | 0                   |
+      | user@example.org11             | 1                   |
+      | user@example.org11@example.org | 0                   |
+      | user@example.org11@example.org | 1                   |
+
+  # The custom sync filter returns <user1> and <user2> from LDAP, so both are considered as users to be added.
+  # But when a user is added, the user is looked up in LDAP again and this lookup respects the configured object class
+  # which is (mis)used here as a filter which only matches <user2>. So <user1> can't be read from LDAP.
+  # <user1> must be skipped then and the synchronization task must continue and add <user2> instead of being aborted.
+  Scenario Outline: The LDAP synchronization task skips users who can't be read from LDAP and continues to add the remaining users
+    Given the following config values are set as admin:
+      | config        | value                          | plugin             |
+      | contexts      | ou=<context>,dc=example,dc=org | auth_ldap_syncplus |
+      | sync_authtype | shibboleth                     | auth_ldap_syncplus |
+      | sync_filter   | (uid=*)                        | auth_ldap_syncplus |
+      | objectclass   | (cn=User <user2number>)        | auth_ldap_syncplus |
+    When I log in as "admin"
+    And I run the scheduled task "\auth_ldap_syncplus\task\sync_task"
+    And I navigate to "Users > Accounts > Browse list of users" in site administration
+    Then I should not see "User <user1number>" in the "[data-region='report-user-list-wrapper']" "css_element"
+    And I should see "User <user2number>" in the "[data-region='report-user-list-wrapper']" "css_element"
+
+    Examples:
+      | context    | user1number | user2number |
+      | department | 01          | 02          |
+      | scoped     | 11          | 12          |

@@ -22,7 +22,13 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// The value of the "Removed ext user" setting for suspending users and fully deleting them after the grace period.
+// This extends the AUTH_REMOVEUSER_KEEP (0), AUTH_REMOVEUSER_SUSPEND (1) and AUTH_REMOVEUSER_FULLDELETE (2)
+// constants of Moodle core.
 define('AUTH_REMOVEUSER_DELETEWITHGRACEPERIOD', 3);
+
+// The name of the user preference which remembers when the grace period of a suspended user has started.
+define('AUTH_LDAP_SYNCPLUS_SUSPENDEDAT_PREFERENCE', 'auth_ldap_syncplus_suspendedat');
 
 /**
  * Helper function to check if the plugin's scheduled tasks should be used to sync users with another auth type plugin.

@@ -54,3 +54,25 @@ sn: 12
 mail: user12@example.org
 userPassword: password2
 objectClass: InetOrgPerson
+
+# Organizational Unit
+# The groups live in their own organizational unit to keep them out of the user contexts.
+dn: ou=groups,dc=example,dc=org
+objectClass: organizationalUnit
+ou: groups
+
+# group01 entry
+# This group contains the first user of each user context.
+dn: cn=group01,ou=groups,dc=example,dc=org
+cn: group01
+member: uid=user01,ou=department,dc=example,dc=org
+member: uid=user11@example.org,ou=scoped,dc=example,dc=org
+objectClass: groupOfNames
+
+# group02 entry
+# This group contains the second user of each user context.
+dn: cn=group02,ou=groups,dc=example,dc=org
+cn: group02
+member: uid=user02,ou=department,dc=example,dc=org
+member: uid=user12@example.org,ou=scoped,dc=example,dc=org
+objectClass: groupOfNames

@@ -24,21 +24,55 @@
 
 namespace auth_ldap_syncplus\privacy;
 
+use core_privacy\local\metadata\collection;
+use core_privacy\local\request\transform;
+use core_privacy\local\request\writer;
+
+defined('MOODLE_INTERNAL') || die();
+
+global $CFG;
+require_once($CFG->dirroot . '/auth/ldap_syncplus/locallib.php');
+
 /**
- * Privacy Subsystem implementing null_provider.
+ * Privacy Subsystem implementing a metadata provider and a user preference provider.
  *
  * @package    auth_ldap_syncplus
  * @copyright  2018 Alexander Bias, Ulm University <alexander.bias@uni-ulm.de>
+ * @copyright  2026 Alexander Bias <bias@alexanderbias.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class provider implements \core_privacy\local\metadata\null_provider {
+class provider implements
+    \core_privacy\local\metadata\provider,
+    \core_privacy\local\request\user_preference_provider {
     /**
-     * Get the language string identifier with the component's language
-     * file to explain why this plugin stores no data.
+     * Returns meta data about this plugin.
      *
-     * @return string
+     * @param collection $collection The initialised collection to add items to.
+     * @return collection A listing of user data stored through this plugin.
      */
-    public static function get_reason(): string {
-        return 'privacy:metadata';
+    public static function get_metadata(collection $collection): collection {
+        $collection->add_user_preference(
+            AUTH_LDAP_SYNCPLUS_SUSPENDEDAT_PREFERENCE,
+            'privacy:metadata:preference:suspendedat'
+        );
+
+        return $collection;
+    }
+
+    /**
+     * Export all user preferences for the plugin.
+     *
+     * @param int $userid The userid of the user whose data is to be exported.
+     */
+    public static function export_user_preferences(int $userid) {
+        $suspendedat = get_user_preferences(AUTH_LDAP_SYNCPLUS_SUSPENDEDAT_PREFERENCE, null, $userid);
+        if ($suspendedat !== null) {
+            writer::export_user_preference(
+                'auth_ldap_syncplus',
+                AUTH_LDAP_SYNCPLUS_SUSPENDEDAT_PREFERENCE,
+                transform::datetime($suspendedat),
+                get_string('privacy:metadata:preference:suspendedat', 'auth_ldap_syncplus')
+            );
+        }
     }
 }

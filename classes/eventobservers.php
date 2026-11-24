@@ -19,6 +19,7 @@
  *
  * @package    auth_ldap_syncplus
  * @copyright  2014 Alexander Bias, Ulm University <alexander.bias@uni-ulm.de>
+ * @copyright  2026 Alexander Bias <bias@alexanderbias.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -26,11 +27,17 @@ namespace auth_ldap_syncplus;
 
 use moodle_exception;
 
+defined('MOODLE_INTERNAL') || die();
+
+global $CFG;
+require_once($CFG->dirroot . '/auth/ldap_syncplus/locallib.php');
+
 /**
  * Observer class containing methods monitoring various events.
  *
  * @package    auth_ldap_syncplus
  * @copyright  2014 Alexander Bias, Ulm University <alexander.bias@uni-ulm.de>
+ * @copyright  2026 Alexander Bias <bias@alexanderbias.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class eventobservers {
@@ -57,6 +64,41 @@ class eventobservers {
                     update_user_record($user->username);
                 }
             }
+        }
+    }
+
+    /**
+     * User updated event observer.
+     *
+     * This observer forgets the grace period start time of a user as soon as the user is not suspended anymore, for example
+     * because an admin has unsuspended the user manually. Otherwise, an outdated start time would remain on an active user
+     * and could be picked up again if the user is suspended by other means than the grace period mode later.
+     *
+     * Please note: The event does not tell which fields of the user were changed, so we check the current status of the user.
+     * And the synchronization task itself updates users without triggering this event, so it removes the start time
+     * on its own when it revives a user.
+     *
+     * @param \core\event\base $event The event that triggered the handler.
+     */
+    public static function user_updated(\core\event\base $event) {
+        global $DB;
+
+        // Do only if user id is enclosed in $eventdata.
+        if (empty($event->relateduserid)) {
+            return;
+        }
+
+        // Check with a single query if the user has a grace period start time but is not suspended (anymore).
+        $sql = "SELECT up.id
+                  FROM {user_preferences} up
+                  JOIN {user} u ON u.id = up.userid
+                 WHERE up.userid = :userid
+                       AND up.name = :name
+                       AND u.suspended = 0";
+        $params = ['userid' => $event->relateduserid, 'name' => AUTH_LDAP_SYNCPLUS_SUSPENDEDAT_PREFERENCE];
+        if ($DB->record_exists_sql($sql, $params)) {
+            // Forget the grace period start time.
+            unset_user_preference(AUTH_LDAP_SYNCPLUS_SUSPENDEDAT_PREFERENCE, $event->relateduserid);
         }
     }
 }
